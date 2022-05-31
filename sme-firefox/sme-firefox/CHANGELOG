@@ -1,0 +1,27 @@
+Since v0.2:
+
+* The policy file is separated into 1) "policyfun.ml" comtaining only the functions needed for assignment security levels to inputs and outputs, building the
+upper list etc. 2) "policy.ml" that contains only assignments of the input and
+output events to security levels.
+
+Since v0.3:
+
+* Changed [User_window] to contain a URL (as it was in the
+Featherweight Firefox model v1.0) -- we need it to define the security level
+of the input_text input event that depends on the url opened in the window
+where this textbox belongs.
+
+Since v0.4:
+
+* Added support for the "Sub-input-event" policies of type. Function ro(input
+[]) builds a list of additional levels for input "input". Then we give this
+input to the copies of input, upper copies and copies at additional levels
+defined by a ro function. Function pi (i l) defines a projection of an
+input event i to a level l. This implementation works for all the previous
+policies as well.
+
+Since v1.0:
+* Added documentation for all the functions in policy.ml, policyfun.ml and 
+wrapper.ml files. Now it is possible to generate HTML documentation using 
+ocamldoc by running 'make doc', before doing it do not forget to change the 
+header of the browser.ml file.

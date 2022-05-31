@@ -1,0 +1,2 @@
+td:first-child { width: 10px; }
+td:first-child + td { width: 500px; }
