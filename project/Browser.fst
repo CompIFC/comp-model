@@ -10,7 +10,7 @@ open FStar.List.Tot.Base
 
 
 (* a type to represent address of a window *)
-type win_ref = int
+type win_ref = nat
 
 (** Generates a fresh [win_ref]. *)
 
@@ -20,22 +20,22 @@ let fresh_win_ref (win:win_ref) : win_ref = win + 1
 
 (** A typf eor referencing a "page", which is a window's contents at a point
       in time. *)
-type page_ref = int
+type page_ref = nat
 
 (** Generates a fresh [page_ref]. *)
-let fresh_page_ref (page:page_ref): page_ref=page+1
+let fresh_page_ref (page:page_ref): page_ref = page + 1
 
 (** A type representing the address of a document node in memory. *)
-type node_ref = int
+type node_ref = nat
 
 (** Generates a fresh [node_ref]. *)
-let fresh_node_ref (node:node_ref): node_ref = node+1
+let fresh_node_ref (node:node_ref): node_ref = node + 1
 
 (** A type representing the address of an activation record in memory. *)
-type act_ref = int
+type act_ref = nat
 
  (** Generates a fresh [act_ref]. *)
-let fresh_act_ref (act:act_ref): act_ref= act+1
+let fresh_act_ref (act:act_ref): act_ref = act + 1
 
 
 (** The type of data that indexes cookies. *)
@@ -68,13 +68,13 @@ type win = {
 
 
 (* internal expressions and running browser states *)
-(** A typf eor the static context of an expression. *)
+(** A type for the static context of an expression. *)
 type context={
     context_win: win_ref;
     context_act: act_ref;
 }
 
-(** A typf eor the additional constructs in the internal language of
+(** A type for the additional constructs in the internal language of
     * expressions. *)
 
 type inner=
@@ -85,7 +85,7 @@ type inner=
 | Value : value -> inner 
 
 
-(* A typf eor the results of evaluating script expressions. *)
+(* A type for the results of evaluating script expressions. *)
 
 and value=
 | Closure: context -> var -> list var -> expr inner->value
@@ -96,7 +96,7 @@ and value=
 
 | Node_value: node_ref -> value
 
-|Null_value: value
+| Null_value: value
 
 | Bool_value: bool -> value
 
@@ -264,7 +264,7 @@ type page={
 }
 
 (** The type of an activation record in the scripting language. *)
-type act={
+type act = {
     act_parent: option act_ref;
 
     act_vars: list (var * value);
@@ -286,7 +286,15 @@ type open_connection=
     task_expr: expr inner;
   }
 
-  
+let b_act_ref_pred (r:act_ref) (a:act) : bool = 
+    match a.act_parent with | None -> true | Some ap -> r > ap
+
+let rec b_env_pred (l:list (act_ref * act)) : bool = 
+  match l with 
+  | [] -> true
+  | (r, a)::tl -> b_act_ref_pred r a && (b_env_pred tl)
+
+type b_env = l:(list (act_ref * act)){b_env_pred l}
 
   (** A typf eor the basic state of a browser. *)
 type browser = {
@@ -297,7 +305,7 @@ type browser = {
    
     browser_nodes: list (node_ref * node);
   
-    browser_environments: list (act_ref * act) ;
+    browser_environments: b_env ;
    
     browser_cookies: list (cookie_id * string) ;
    
@@ -599,47 +607,62 @@ let node_parent (dr: node_ref) (b: browser)
     match (assoc ar b.browser_environments) with 
   | None -> false
   | _ -> true
+  
+let rec act_assoc_valid_lemma (ar: act_ref) (b:b_env) : 
+  Lemma (requires (Some? (assoc ar b))) 
+	(ensures (b_act_ref_pred ar (Some?.v (assoc ar b)))) = 
+  match b with 
+  | [] -> ()
+  | (k,_)::tl -> if k = ar then () else act_assoc_valid_lemma ar tl
 
 (** [act_assoc_valid ar b] returns the activation record associated with [ar]
       in [b]. *)
-      // need to implement
-let act_assoc_valid (ar: act_ref) (b: browser
-    {(act_valid ar b)}) : act =
+let act_assoc_valid (ar: act_ref) (b: browser{(act_valid ar b)}) : (a:act{b_act_ref_pred ar a}) =
+  act_assoc_valid_lemma ar b.browser_environments;
+  match (assoc ar b.browser_environments) with 
+  | Some v -> v
 
-  Some?.v (assoc ar b.browser_environments)
-      
+let rec act_update_lemma (ar: act_ref) (act: act{b_act_ref_pred ar act}) (b:b_env) : 
+  Lemma (requires (b_act_ref_pred ar act)) 
+	(ensures (b_env_pred (upd_assoc ar act b))) = 
+    begin match b with
+    | [] -> ()
+    | (k', d') :: b' -> if k' = ar then () else act_update_lemma ar act b'
+    end
+
  (** [act_update ar l act b] associates [ar] with the new domain [l]
       and the new activation record [act] in [b]. *)
-  let act_update (ar: act_ref) (act: act) (b: browser)
+  let act_update (ar: act_ref) (act: act{b_act_ref_pred ar act}) (b: browser)
   : browser =
     let environments' = upd_assoc ar act b.browser_environments in
+    act_update_lemma ar act b.browser_environments;
     { b with browser_environments = environments' }
 
 (** [act_new l act b] adds [act], paired with [l], to the activation
       record store of [b] and returns its fresh key. *)
-  let act_new (act: act) (b: browser)
+  let act_new (act: act) (b: browser{let a_ref = (if length (b.browser_environments) >= 1 then (fst (last b.browser_environments)) else 0) in
+		        let ar = fresh_page_ref (a_ref) in
+			b_act_ref_pred ar act})
   : act_ref * browser =
-  let a_ref = 
-  (if length (b.browser_environments) >=1 then (fst (last b.browser_environments))
-  else 0) in
+    let a_ref = (if length (b.browser_environments) >= 1 then (fst (last b.browser_environments)) else 0) in
     let ar = fresh_page_ref (a_ref) in
     let b' = act_update ar act b in
     (ar, b')
 
-
 (** [get_var x ar b] gets the result associated with [x] in [b] in the scope
       defined by [ar], if [x] exists in that scope. *)
-      // --TO DO --
-  // let rec get_var (x: var) (ar: act_ref) (b: browser  {act_valid ar b})
-  // : option value =
-  //   let act = act_assoc_valid ar b in
-  //   begin match assoc x act.act_vars with 
-  //   | None -> begin match act.act_parent with
-  //     | None -> None
-  //     | Some(ar1) -> get_var x ar1 b
-  //     end
-  //   | _ ->  (assoc x act.act_vars)
-  //   end
-
+  let rec get_var (x: var) (ar: act_ref) (b: browser)
+  : option value =
+  if act_valid ar b then
+    let act = act_assoc_valid ar b in
+    assert (b_act_ref_pred ar act);
+    begin match assoc x act.act_vars with 
+    | None -> begin match act.act_parent with
+      | None -> None
+      | Some ar1 -> get_var x ar1 b
+      end
+    | _ ->  (assoc x act.act_vars)
+    end
+  else None
 
 
