@@ -34,8 +34,11 @@ type req_uri= {
 // the type of URL
 
 type url=
-| Blank_url: url
-| Http_url : domain -> req_uri -> url
+| Blank_url
+    (** The URL of a blank browser window (typically written as
+        [about:blank]). *)
+  | Http_url of domain * req_uri
+    (** A URL that begins with [http://]. *)
 
 
 
@@ -257,13 +260,21 @@ type elt_id= string
 // HTML document syntax
 
 type doc=
-| Para: option elt_id -> string -> doc
-| Link: option elt_id -> url -> string -> doc
-| Text: option elt_id -> string -> doc
-| Button: option elt_id -> string -> doc
-| Remote_script: option elt_id -> url -> doc
-| Divi: option elt_id -> list doc -> doc 
-| Inline_script: option elt_id -> expr False -> doc
+| Para of option elt_id * string
+    (** [Para(id, text)] represents a block of text. *)
+  | Link of option elt_id * url * string
+    (** [Link(id, link_text, href)] represents to an HTML [a] tag. *)
+  | Textbox of option elt_id * string
+    (** [Textbox(id, contents)] represents a text input box. *)
+  | Button of option elt_id * string
+    (** [Button(id, button_text)] represents to an HTML button. *)
+  | Inl_script of option elt_id * expr unit
+    (** Represents a [script] tag with an inline script. *)
+  | Rem_script of option elt_id * url
+    (** Represents a [script] tag with a [src] attribute. *)
+  | Divi of option elt_id * list doc
+    (** Contains a sequence of subdocuments.  For simplicity, this is the only
+        document structure with children. *)
 
 
 (** {2 Network (HTTP) interface} *)
@@ -362,11 +373,11 @@ type input_event =
 (** A type for the visible representation of a document node tree. *)
 
 type rendered_doc =
-  | Para_rendered: string -> rendered_doc
-  | Link_rendered: url -> string -> rendered_doc
-  | Textbox_rendered: string -> rendered_doc
-  | Button_rendered: string -> rendered_doc
-  | Div_rendered: list rendered_doc -> rendered_doc 
+ | Para_rendered of string
+  | Link_rendered of url * string
+  | Textbox_rendered of string
+  | Button_rendered of string
+  | Div_rendered of list rendered_doc 
 
 (** The type of output events that a browser can generate. *)
 type output_event =
