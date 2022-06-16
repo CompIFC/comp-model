@@ -29,7 +29,7 @@ let fresh_page_ref (page:page_ref): page_ref = page + 1
 type node_ref = nat
 
 (** Generates a fresh [node_ref]. *)
-let fresh_node_ref (node:node_ref): node_ref = node + 1
+let fresh_node_ref (nref:node_ref): node_ref = nref + 1
 
 (** A type representing the address of an activation record in memory. *)
 type act_ref = nat
@@ -311,25 +311,24 @@ let rec b_env_pred (l:list (act_ref * act)) : bool =
 
 type b_env = l:(list (act_ref * act)){b_env_pred l}
 
-(** asserting that if node is of type divi, its list of node_ref has 
+(** asserting that if node is of type div, its list of node_ref has 
 higher reference numbers **)
-let rec node_list_check(l:list node_ref)(n: node_ref): bool=
+let rec node_list_check (l:list node_ref) (n: node_ref): bool=
   match l with 
-  |[] -> true
+  | [] -> true
   | r::tl -> r > n && (node_list_check tl n)
 
-let b_node_ref_pred (r:node_ref)(n:node) : bool=
+let b_node_ref_pred (r:node_ref) (n:node) : bool=
   match n with
-  | Div_node(n) -> node_list_check (snd(n)) r
+  | Div_node (_,n) -> node_list_check n r
   | _ -> true
 
 let rec b_node_pred (l:list (node_ref * node)) : bool=
   match l with 
   | [] -> true
-  | (r,n):: t1-> b_node_ref_pred r n && (b_node_pred t1)
+  | (r,n):: t1 -> b_node_ref_pred r n && (b_node_pred t1)
 
-
-type b_nodes= l: (list(node_ref * node)){b_node_pred l}
+type b_nodes= l: (list (node_ref * node)){b_node_pred l}
 
   
 (** A typf eor the basic state of a browser. *)
@@ -550,38 +549,37 @@ assume val win_from_user_window (u n: user_window) (b:browser) : option win_ref
       [b]. *)
   let node_valid (dr: node_ref) (b: browser)
   : bool =
-    match (assoc dr b.browser_windows) with 
+    match (assoc dr b.browser_nodes) with 
   | None -> false
   | _ -> true
 
 (** [node_assoc_valid dr b] returns the [node] associated with [dr] in the
       node store of [b]. *)
 
-      // ---TO DO---
+// ---TO DO---
 let rec node_assoc_valid_lemma (dr: node_ref) (b:b_nodes):
   Lemma (requires (Some? (assoc dr b)))
-  (ensures (b_node_ref_pred dr (Some?.v (assoc dr b))))=
+	(ensures (b_node_ref_pred dr (Some?.v (assoc dr b)))) =
   match b with
-  |[] -> ()
-  | (k,_)::tl -> if k=dr then () else node_assoc_valid_lemma dr tl
+  | [] -> ()
+  | (k,_)::tl -> if k = dr then () else node_assoc_valid_lemma dr tl
 
 let node_assoc_valid (dr: node_ref) (b: browser {node_valid dr b}) : (n:node{b_node_ref_pred dr n}) =
-    node_assoc_valid_lemma dr b.browser_nodes;
+  assert (Some? (assoc dr b.browser_nodes));
+  node_assoc_valid_lemma dr b.browser_nodes;
   match (assoc dr b.browser_nodes) with 
   | Some v -> v
 
-
 let rec node_update_lemma (dr: node_ref) (dn: node{b_node_ref_pred dr dn}) (b:b_nodes):
- Lemma (requires (b_node_ref_pred dr dn))
- (ensures (b_node_pred (upd_assoc dr dn b)))=
-      begin match b with
+  Lemma (requires (b_node_ref_pred dr dn))
+  (ensures (b_node_pred (upd_assoc dr dn b)))=
+   begin match b with
     | [] -> ()
     | (k', d') :: b' -> if k' = dr then () else node_update_lemma dr dn b'
-    end
-
+   end
 
   (** [node_update dr dn b] associates [dr] with the node [dn] in [b]. *)
-  let node_update (dr: node_ref) (dn: node{b_node_ref_pred dr dn}) (b: browser)
+let node_update (dr: node_ref) (dn: node{b_node_ref_pred dr dn}) (b: browser)
   : browser =
     let nodes' = upd_assoc dr dn b.browser_nodes in
     node_update_lemma dr dn b.browser_nodes;
@@ -589,14 +587,14 @@ let rec node_update_lemma (dr: node_ref) (dn: node{b_node_ref_pred dr dn}) (b:b_
 
 (** [node_new dn b] adds [dn] to the node store of [b] and returns its
       fresh key. *)
-  let node_new (dn: node) (b: browser)
+let node_new (dn: node) (b: browser{let n_ref = (if length (b.browser_nodes) >= 1 then (fst (last b.browser_nodes)) else 0) in
+		        let nr = fresh_node_ref (n_ref) in
+			b_node_ref_pred nr dn})
   : node_ref * browser =
-  let n_ref = 
-  (if length (b.browser_nodes) >=1 then (fst (last b.browser_nodes))
-  else 0) in
-    let nr = fresh_node_ref (n_ref) in
-    let b' = node_update nr dn b in
-    (nr, b')
+  let n_ref = if length b.browser_nodes >= 1 then (fst (last b.browser_nodes)) else 0 in
+  let nr = fresh_node_ref n_ref in
+  let b' = node_update nr dn b in
+  (nr, b')
 
 (** The type of a node's parent object. *)
 type node_parent_type =
@@ -604,43 +602,49 @@ type node_parent_type =
     | Page_parent of page_ref
     | Parent_node of node_ref
 
+let rec node_parent_bpages (dr: node_ref) (l: list (page_ref * page)) =
+  match l with 
+  | [] -> None
+  | (pr, p)::tl -> (match p.page_document with 
+		 | Some dr1 -> if dr1 = dr then Some pr else node_parent_bpages dr tl
+		 | _ -> node_parent_bpages dr tl)
 
+let rec node_parent_dnode_lemma (dr:node_ref) (l:list node_ref) (nr:node_ref) : Lemma ((node_list_check l nr /\ mem dr l) ==> nr < dr) = 
+  match l with 
+  | [] -> ()
+  | hd::tl -> node_parent_dnode_lemma dr tl nr
+
+let rec node_parent_dnode (dr: node_ref) (l: b_nodes) : option (pr:node_ref{pr < dr}) =
+  match l with 
+  | [] -> None
+  | (nr,n)::tl -> assert (b_node_ref_pred nr n);
+		(match n with 
+		| Div_node (_, children) -> 
+		  assert (node_list_check children nr);
+		  node_parent_dnode_lemma dr children nr;
+		  if mem dr children then Some nr else node_parent_dnode dr tl
+		| _ -> node_parent_dnode dr tl)
 
 (** Finds the parent of a node. *)
 let node_parent (dr: node_ref) (b: browser)
   : node_parent_type =
-    let is_page_parent (_, p) = 
-    begin match p.page_document with
-    | Some dr1 -> if (dr1 = dr) then true else false
-    | _ -> false
-    end
-     in
-    let is_node_parent (_, dn) =
-      begin match dn with
-      | Div_node (_, children) -> mem dr children
-      | _ -> false
-      end
-    in
-    begin match filter is_page_parent b.browser_pages with
-    | (pr, _) :: _ -> Page_parent(pr)
-    | [] ->
-        begin match filter is_node_parent b.browser_nodes with
-        | (dr1, _) :: _ -> Parent_node(dr1)
-        | [] -> No_parent
+  begin match node_parent_bpages dr b.browser_pages with
+    | Some pr -> Page_parent pr
+    | None ->
+        begin match node_parent_dnode dr b.browser_nodes with
+        | Some nr -> assert (nr < dr); Parent_node nr
+        | None -> No_parent
         end
   end
 
   (** Finds the page displaying a node if there is one. *)
-// ---TO DO --
-// assume val node_page (dr: node_ref) (b: browser): option page_ref
-  let rec node_page (dr: node_ref) (b: browser)
+let rec node_page (dr: node_ref) (b: browser)
   : option page_ref =
     begin match node_parent dr b with
     | No_parent -> None
     | Page_parent (pr) -> Some pr
     | Parent_node (dr1) -> node_page dr1 b
     end
-
 
 (** {4 Browser activation record store and variables} *)
 

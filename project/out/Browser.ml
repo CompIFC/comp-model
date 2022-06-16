@@ -6,7 +6,7 @@ let (fresh_page_ref : page_ref -> page_ref) =
   fun page -> page + Prims.int_one
 type node_ref = Prims.nat
 let (fresh_node_ref : node_ref -> node_ref) =
-  fun node -> node + Prims.int_one
+  fun nref -> nref + Prims.int_one
 type act_ref = Prims.nat
 let (fresh_act_ref : act_ref -> act_ref) = fun act -> act + Prims.int_one
 type cookie_id =
@@ -443,11 +443,27 @@ let rec (b_env_pred : (act_ref * act) Prims.list -> Prims.bool) =
     | [] -> true
     | (r, a)::tl -> (b_act_ref_pred r a) && (b_env_pred tl)
 type b_env = (act_ref * act) Prims.list
+let rec (node_list_check : node_ref Prims.list -> node_ref -> Prims.bool) =
+  fun l ->
+    fun n ->
+      match l with | [] -> true | r::tl -> (r > n) && (node_list_check tl n)
+let (b_node_ref_pred : node_ref -> node -> Prims.bool) =
+  fun r ->
+    fun n ->
+      match n with
+      | Div_node (uu___, n1) -> node_list_check n1 r
+      | uu___ -> true
+let rec (b_node_pred : (node_ref * node) Prims.list -> Prims.bool) =
+  fun l ->
+    match l with
+    | [] -> true
+    | (r, n)::t1 -> (b_node_ref_pred r n) && (b_node_pred t1)
+type b_nodes = (node_ref * node) Prims.list
 type browser =
   {
   browser_windows: (win_ref * win) Prims.list ;
   browser_pages: (page_ref * page) Prims.list ;
-  browser_nodes: (node_ref * node) Prims.list ;
+  browser_nodes: b_nodes ;
   browser_environments: b_env ;
   browser_cookies: (cookie_id * Prims.string) Prims.list ;
   browser_connections:
@@ -464,8 +480,7 @@ let (__proj__Mkbrowser__item__browser_pages :
     match projectee with
     | { browser_windows; browser_pages; browser_nodes; browser_environments;
         browser_cookies; browser_connections;_} -> browser_pages
-let (__proj__Mkbrowser__item__browser_nodes :
-  browser -> (node_ref * node) Prims.list) =
+let (__proj__Mkbrowser__item__browser_nodes : browser -> b_nodes) =
   fun projectee ->
     match projectee with
     | { browser_windows; browser_pages; browser_nodes; browser_environments;
@@ -657,14 +672,16 @@ let (win_from_user_window :
 let (node_valid : node_ref -> browser -> Prims.bool) =
   fun dr ->
     fun b ->
-      match FStar_List_Tot_Base.assoc dr b.browser_windows with
+      match FStar_List_Tot_Base.assoc dr b.browser_nodes with
       | FStar_Pervasives_Native.None -> false
       | uu___ -> true
+
 let (node_assoc_valid : node_ref -> browser -> node) =
   fun dr ->
     fun b ->
-      FStar_Pervasives_Native.__proj__Some__item__v
-        (FStar_List_Tot_Base.assoc dr b.browser_nodes)
+      match FStar_List_Tot_Base.assoc dr b.browser_nodes with
+      | FStar_Pervasives_Native.Some v -> v
+
 let (node_update : node_ref -> node -> browser -> browser) =
   fun dr ->
     fun dn ->
@@ -687,7 +704,7 @@ let (node_new : node -> browser -> (node_ref * browser)) =
           FStar_Pervasives_Native.fst
             (FStar_List_Tot_Base.last b.browser_nodes)
         else Prims.int_zero in
-      let nr = fresh_win_ref n_ref in
+      let nr = fresh_node_ref n_ref in
       let b' = node_update nr dn b in (nr, b')
 type node_parent_type =
   | No_parent 
@@ -705,33 +722,52 @@ let (uu___is_Parent_node : node_parent_type -> Prims.bool) =
     match projectee with | Parent_node _0 -> true | uu___ -> false
 let (__proj__Parent_node__item___0 : node_parent_type -> node_ref) =
   fun projectee -> match projectee with | Parent_node _0 -> _0
+let rec (node_parent_bpages :
+  node_ref ->
+    (page_ref * page) Prims.list -> page_ref FStar_Pervasives_Native.option)
+  =
+  fun dr ->
+    fun l ->
+      match l with
+      | [] -> FStar_Pervasives_Native.None
+      | (pr, p)::tl ->
+          (match p.page_document with
+           | FStar_Pervasives_Native.Some dr1 ->
+               if dr1 = dr
+               then FStar_Pervasives_Native.Some pr
+               else node_parent_bpages dr tl
+           | uu___ -> node_parent_bpages dr tl)
+
+let rec (node_parent_dnode :
+  node_ref -> b_nodes -> node_ref FStar_Pervasives_Native.option) =
+  fun dr ->
+    fun l ->
+      match l with
+      | [] -> FStar_Pervasives_Native.None
+      | (nr, n)::tl ->
+          (match n with
+           | Div_node (uu___, children) ->
+               if FStar_List_Tot_Base.mem dr children
+               then FStar_Pervasives_Native.Some nr
+               else node_parent_dnode dr tl
+           | uu___ -> node_parent_dnode dr tl)
 let (node_parent : node_ref -> browser -> node_parent_type) =
   fun dr ->
     fun b ->
-      let is_page_parent uu___ =
-        match uu___ with
-        | (uu___1, p) ->
-            (match p.page_document with
-             | FStar_Pervasives_Native.Some dr1 ->
-                 if dr1 = dr then true else false
-             | uu___2 -> false) in
-      let is_node_parent uu___ =
-        match uu___ with
-        | (uu___1, dn) ->
-            (match dn with
-             | Div_node (uu___2, children) ->
-                 FStar_List_Tot_Base.mem dr children
-             | uu___2 -> false) in
-      match FStar_List_Tot_Base.filter is_page_parent b.browser_pages with
-      | (pr, uu___)::uu___1 -> Page_parent pr
-      | [] ->
-          (match FStar_List_Tot_Base.filter is_node_parent b.browser_nodes
-           with
-           | (dr1, uu___)::uu___1 -> Parent_node dr1
-           | [] -> No_parent)
-let (node_page :
+      match node_parent_bpages dr b.browser_pages with
+      | FStar_Pervasives_Native.Some pr -> Page_parent pr
+      | FStar_Pervasives_Native.None ->
+          (match node_parent_dnode dr b.browser_nodes with
+           | FStar_Pervasives_Native.Some nr -> Parent_node nr
+           | FStar_Pervasives_Native.None -> No_parent)
+let rec (node_page :
   node_ref -> browser -> page_ref FStar_Pervasives_Native.option) =
-  fun dr -> fun b -> failwith "Not yet implemented:node_page"
+  fun dr ->
+    fun b ->
+      match node_parent dr b with
+      | No_parent -> FStar_Pervasives_Native.None
+      | Page_parent pr -> FStar_Pervasives_Native.Some pr
+      | Parent_node dr1 -> node_page dr1 b
 let (act_valid : act_ref -> browser -> Prims.bool) =
   fun ar ->
     fun b ->
