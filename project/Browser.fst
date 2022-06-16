@@ -330,7 +330,7 @@ let rec b_node_pred (l:list (node_ref * node)) : bool=
 
 type b_nodes= l: (list (node_ref * node)){b_node_pred l}
 
-  
+type b_conn= list (domain * req_uri * dst)
 (** A typf eor the basic state of a browser. *)
 type browser = {
 
@@ -344,7 +344,7 @@ type browser = {
    
     browser_cookies: list (cookie_id * string) ;
    
-    browser_connections: list (domain * req_uri * dst) ;
+    browser_connections: b_conn;
    
 }
 
@@ -830,37 +830,38 @@ let rec set_var (x: var) (r: value) (ar: act_ref) (b: browser)
 
 //   (** {4 Browser network connections} *)
 
-//   (** [net_connection_domain_nth d n b] returns the [n]th [req_uri] and [dst]
-//       associated with [d] (based on the order in which they were opened) among
-//       the open network connections of [b], if one exists. *)
-//   let net_connection_domain_nth (d: domain) (n: nat) (b: browser)
-//   : option (req_uri * dst) =
-//     let test (d', _, _) = (d' = d) in
-//     let connections' = filter test b.browser_connections in
-//     begin if length connections' <= n then
-//       None
-//     else
-//       let (_, uri, dst) = index connections' n in
-//       Some((uri, dst))
-//     end
+  (** [net_connection_domain_nth d n b] returns the [n]th [req_uri] and [dst]
+      associated with [d] (based on the order in which they were opened) among
+      the open network connections of [b], if one exists. *)
+  let net_connection_domain_nth (d: domain) (n: nat) (b: browser)
+  : option (req_uri * dst) =
+    let test (d', _, _) = (d' = d) in
+    let connections' = filter test b.browser_connections in
+    begin if length connections' <= n then
+      None
+    else
+      let (_, uri, dst) = index connections' n in
+      Some((uri, dst))
+    end
 
-//   (** [net_connection_domain_remove_nth d n b] removes the [n]th [req_uri] and
-//       [dst] associated with [d] (based on the order in which they were opened)
-//       among the open network connections of [b], if one exists. *)
-//   // --TO DO ---
-// assume val net_connection_domain_remove_nth (d: domain) (n: nat) (b: browser): browser 
-//   // let net_connection_domain_remove_nth (d: domain) (n: nat) (b: browser)
-//   // : browser =
-//   //   let rec remove n cs =
-//   //     begin match cs with
-//   //     | [] -> []
-//   //     | (d',_,_) :: cs'-> if n = 0 && d' = d then cs' 
-//   //                           else if d' = d then (d',_,_):: remove (n-1) cs'
-//   //                           else (d',_,_) :: remove n cs'
-//   //     end
-//   //   in
-//   //   let connections' = remove n b.browser_connections in
-//   //   { b with browser_connections = connections' }
+  // helper function
+  let rec remove (d: domain)(n: nat) (cs:b_conn): Tot (b_conn)(decreases cs) =
+      begin match cs with
+      | [] -> []
+      | (d',x,y) :: cs'-> if n = 0 && d' = d then cs' 
+                            else if d' = d then (d',x,y):: remove d (n-1) cs'
+                            else (d',x,y) :: remove d n cs'
+      end
+
+  (** [net_connection_domain_remove_nth d n b] removes the [n]th [req_uri] and
+      [dst] associated with [d] (based on the order in which they were opened)
+      among the open network connections of [b], if one exists. *)
+  
+  let net_connection_domain_remove_nth (d: domain) (n: nat) (b: browser)
+  : browser =
+
+    let connections' = remove d n b.browser_connections in
+    { b with browser_connections = connections' }
 
   
  (** [http_send d uri body dst b] updates the appropriate browser structures

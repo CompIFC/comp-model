@@ -459,6 +459,7 @@ let rec (b_node_pred : (node_ref * node) Prims.list -> Prims.bool) =
     | [] -> true
     | (r, n)::t1 -> (b_node_ref_pred r n) && (b_node_pred t1)
 type b_nodes = (node_ref * node) Prims.list
+type b_conn = (BrowserIO.domain * BrowserIO.req_uri * dst) Prims.list
 type browser =
   {
   browser_windows: (win_ref * win) Prims.list ;
@@ -466,8 +467,7 @@ type browser =
   browser_nodes: b_nodes ;
   browser_environments: b_env ;
   browser_cookies: (cookie_id * Prims.string) Prims.list ;
-  browser_connections:
-    (BrowserIO.domain * BrowserIO.req_uri * dst) Prims.list }
+  browser_connections: b_conn }
 let (__proj__Mkbrowser__item__browser_windows :
   browser -> (win_ref * win) Prims.list) =
   fun projectee ->
@@ -496,8 +496,7 @@ let (__proj__Mkbrowser__item__browser_cookies :
     match projectee with
     | { browser_windows; browser_pages; browser_nodes; browser_environments;
         browser_cookies; browser_connections;_} -> browser_cookies
-let (__proj__Mkbrowser__item__browser_connections :
-  browser -> (BrowserIO.domain * BrowserIO.req_uri * dst) Prims.list) =
+let (__proj__Mkbrowser__item__browser_connections : browser -> b_conn) =
   fun projectee ->
     match projectee with
     | { browser_windows; browser_pages; browser_nodes; browser_environments;
@@ -962,6 +961,50 @@ let (upd_cookies :
             set_site_cookies d uri.BrowserIO.req_uri_path
               resp.BrowserIO.resp_set_cookies b' in
           b''
+let (net_connection_domain_nth :
+  BrowserIO.domain ->
+    Prims.nat ->
+      browser -> (BrowserIO.req_uri * dst) FStar_Pervasives_Native.option)
+  =
+  fun d ->
+    fun n ->
+      fun b ->
+        let test uu___ = match uu___ with | (d', uu___1, uu___2) -> d' = d in
+        let connections' =
+          FStar_List_Tot_Base.filter test b.browser_connections in
+        if (FStar_List_Tot_Base.length connections') <= n
+        then FStar_Pervasives_Native.None
+        else
+          (let uu___1 = FStar_List_Tot_Base.index connections' n in
+           match uu___1 with
+           | (uu___2, uri, dst1) -> FStar_Pervasives_Native.Some (uri, dst1))
+let rec (remove : BrowserIO.domain -> Prims.nat -> b_conn -> b_conn) =
+  fun d ->
+    fun n ->
+      fun cs ->
+        match cs with
+        | [] -> []
+        | (d', x, y)::cs' ->
+            if (n = Prims.int_zero) && (d' = d)
+            then cs'
+            else
+              if d' = d
+              then (d', x, y) :: (remove d (n - Prims.int_one) cs')
+              else (d', x, y) :: (remove d n cs')
+let (net_connection_domain_remove_nth :
+  BrowserIO.domain -> Prims.nat -> browser -> browser) =
+  fun d ->
+    fun n ->
+      fun b ->
+        let connections' = remove d n b.browser_connections in
+        {
+          browser_windows = (b.browser_windows);
+          browser_pages = (b.browser_pages);
+          browser_nodes = (b.browser_nodes);
+          browser_environments = (b.browser_environments);
+          browser_cookies = (b.browser_cookies);
+          browser_connections = connections'
+        }
 let (http_send :
   BrowserIO.domain ->
     BrowserIO.req_uri ->

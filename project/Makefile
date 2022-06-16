@@ -10,7 +10,7 @@ include $(FSTAR_ULIB)/ml/Makefile.include
 # 	# ./BrowserIO.exe
 
 browser: out browser.fst
-	$(FSTAR) $(FSTAR_DEFAULT_ARGS) --odir out --codegen OCaml --extract 'Browser' Browser.fst --record_hints
+	$(FSTAR) $(FSTAR_DEFAULT_ARGS) Assumed.fst BrowserIO.fst --odir out --codegen OCaml --extract 'Browser' Browser.fst --record_hints
 
 
 
