@@ -877,273 +877,264 @@ let rec set_var (x: var) (r: value) (ar: act_ref) (b: browser)
 
 //  (** {3 Rendering documents for user output} *)
 
-//   // (**/**)
-//   //  --- TO DO ---
-
-//   assume val render_doc_as_list (dr: node_ref) (b: browser): list rendered_doc
-//   let rec render_doc_as_list (dr: node_ref) (b: browser)
-//   : list rendered_doc =
-//     assert (node_valid dr b);
-//     begin match node_assoc_valid dr b with
-//     | Para_node ( _, txt) -> [ Para_rendered(txt) ]
-//     | Link_node (_, u, txt) -> [ Link_rendered(u, txt) ]
-//     | Textbox_node (_, txt, _) -> [ Textbox_rendered(txt) ]
-//     | Button_node(_, txt, _) -> [ Button_rendered(txt) ]
-//     | Inl_script_node(_, _, _) -> []
-//     | Rem_script_node(_, _, _) -> []
-//     | Div_node(_, drs) ->
-//         let bd dr = render_doc_as_list dr b in
-//         [ Div_rendered(flatten (map bd drs)) ]
-//     end
-//   (**/**)
+ // (**/**)
+ let rec render_doc_as_list (dr: node_ref) (b: browser)
+  : list rendered_doc =
+    if (node_valid dr b) then
+    begin match node_assoc_valid dr b with
+    | Para_node ( _, txt) -> [ Para_rendered(txt) ]
+    | Link_node (_, u, txt) -> [ Link_rendered(u, txt) ]
+    | Textbox_node (_, txt, _) -> [ Textbox_rendered(txt) ]
+    | Button_node(_, txt, _) -> [ Button_rendered(txt) ]
+    | Inl_script_node(_, _, _) -> []
+    | Rem_script_node(_, _, _) -> []
+    | Div_node(_, drs) ->
+        // let bd dr = render_doc_as_list dr b in
+        [ Div_rendered([]) ]       // flatten (map bd drs)  --TO DO -- 
+    end
+    else []
+  (**/**)
 
 
-//   // (** [render_page pr b] returns the rendered representation of the document in
-//   //     [pr].  A result of [None] indicates there are no visible contents.  The
-//   //     behavior of this function is undefined if [pr] is not a valid page
-//   //     reference. *)
-// assume val render_page (pr: page_ref) (b: browser)
-//   : option rendered_doc 
-//   // --- TO DO --
-//   // let render_page (pr: page_ref) (b: b)
-//   // : rendered_doc option =          
-//   //   assert (page_valid pr b);    
-//   //   begin match (page_assoc_valid pr b).page_document with
-//   //   | None -> None
-//   //   | Some(dr) ->
-//   //       begin match render_doc_as_list dr b with
-//   //       | [] -> None
-//   //       | rd :: _ -> Some(rd)
-//   //       end
-//   //   end
+  (** [render_page pr b] returns the rendered representation of the document in
+      [pr].  A result of [None] indicates there are no visible contents.  The
+      behavior of this function is undefined if [pr] is not a valid page
+      reference. *)
+
+  let render_page (pr: page_ref) (b: browser)
+  : option rendered_doc =          
+    if (page_valid pr b) then     
+    begin match (page_assoc_valid pr b).page_document with
+    | None -> None
+    | Some(dr) ->
+        begin match render_doc_as_list dr b with
+        | [] -> None
+        | rd :: _ -> Some(rd)
+        end
+    end
+    else None
 
 
 //     (** [page_update_event pr b] returns a [UI_page_updated_event] for the page
 //       reference [pr]. *)
-// // --- TO DO ---
-// assume val page_update_event (pr: page_ref) (b: browser): output_event
-//   // let page_update_event (pr: page_ref) (b: browser)
-//   // : output_event =
-//   //   let wr =
-//   //     begin match page_win pr b with
-//   //     | None -> assert false
-//   //     | Some(wr) -> wr
-//   //     end
-//   //   in
-//   //   let uw = win_to_user_window wr b in
-//   //   let rd_opt = render_page pr b in
-//   //   UI_page_updated_event(uw, rd_opt)
+
+  let page_update_event (pr: page_ref) (b: browser)
+  : output_event =
+    begin match page_win pr b with
+    | None -> UI_error "page reference not found in browser"
+    | Some(wr) ->
+    if (win_valid wr b && page_valid (win_assoc_valid wr b).win_page b) then
+      let uw = win_to_user_window wr b in
+      let rd_opt = render_page pr b in
+      UI_page_updated_event(uw, rd_opt)
+    else UI_error "invalid win_ref or page_ref"
+    end
 
 
-//   (** [build_win wn u doc b] builds a new window structure with the window name
-//       [wn].  A new page is created in [b] using [u] for the page's
-//       location.  If the contents can be displayed immediately, then a new
-//       activation record is also created for the window's environment. *)
-//   let build_win
-//     (wn: win_name) (u: url) (wo: win_opener) (doc: option node_ref) (b: browser)
-//   : win * browser =
-//     let a = {
-//       act_parent = None;
-//       act_vars = [];
-//     } in
-//     let (ar, b') = act_new a b in
-//     let p = {
-//       page_location = u;
-//       page_document = doc;
-//       page_environment = ar;
-//       page_script_queue = [];
-//     } in
-//     let (pr, b'') = page_new p b' in
-//     let w = {
-//       win_name = wn;
-//       win_opener = wo;
-//       win_page = pr;
-//     } in
-//     (w, b'')
+  (** [build_win wn u doc b] builds a new window structure with the window name
+      [wn].  A new page is created in [b] using [u] for the page's
+      location.  If the contents can be displayed immediately, then a new
+      activation record is also created for the window's environment. *)
+  let build_win
+    (wn: win_name) (u: url) (wo: win_opener) (doc: option node_ref) (b: browser)
+  : win * browser =
+    let a = {
+      act_parent = None;
+      act_vars = [];
+    } in
+    let (ar, b') = act_new a b in
+    let p = {
+      page_location = u;
+      page_document = doc;
+      page_environment = ar;
+      page_script_queue = [];
+    } in
+    let (pr, b'') = page_new p b' in
+    let w = {
+      win_name = wn;
+      win_opener = wo;
+      win_page = pr;
+    } in
+    (w, b'')
 
-//   (** [fetch_url u wr b] performs whatever action is required by the URL [u]. *)
-//   //  --- TO DO --
-//   let fetch_url (u: url) (wr: win_ref) (b: browser)
-//   : browser * list output_event =
-//    assume (win_valid wr b);
-//     assert (win_valid wr b);
-//     begin match u with
-//     | Blank_url ->
-//         (b, [])
-//     | Http_url(d, uri) ->
-//         let dst = Doc_dst(wr) in
-//         let (b', oe) = http_send d uri "" dst b in
-//         (b', [ oe ])
-//     end
+  (** [fetch_url u wr b] performs whatever action is required by the URL [u]. *)
+  //  --- TO DO --
+  let fetch_url (u: url) (wr: win_ref) (b: browser)
+  : browser * list output_event =
+    if (win_valid wr b) then
+    begin match u with
+    | Blank_url ->
+        (b, [])
+    | Http_url(d, uri) ->
+        let dst = Doc_dst(wr) in
+        let (b', oe) = http_send d uri "" dst b in
+        (b', [ oe ])
+    end
+    else (b,[UI_error "invalid win_ref"])
 
-//   (** [open_win wn u b] creates a new window in the browser with the window
-//       name [wn], directed to the URL [u].  It returns a reference to the newly
-//       created window. *)
+  (** [open_win wn u b] creates a new window in the browser with the window
+      name [wn], directed to the URL [u].  It returns a reference to the newly
+      created window. *)
 
-//   let open_win (wn: win_name) (u: url) (wo: win_opener) (b: browser)
-//   : win_ref * browser * list output_event =
-//     let (w', b') = build_win wn Blank_url wo None b in
-//     let (wr, b'') = win_new w' b' in
-//     let (b''', oes) = fetch_url u wr b'' in
-//     (wr, b''', UI_win_opened_event :: oes)
-
-
-// (** [close_doc_request_connections wr b] removes any network connection
-//       that is waiting for a document to load into the window referenced by
-//       [wr]. *)
-//   let close_doc_request_connections (wr: win_ref) (b: browser)
-//   : browser =
-// // -- to do --
-//     assume (win_valid wr b);
-//     assert (win_valid wr b);
-//     let not_for_wr (_, _, dst) =
-//       begin match dst with
-//       | Doc_dst(wr') -> wr' <> wr
-//       | _ -> true
-//       end
-//     in
-//     let connections' = filter not_for_wr b.browser_connections in
-//     { b with browser_connections = connections' }
-
-//  (** [direct_win wr u b] directs the window referenced by [wr] to the URL
-//       [u]. *)
-//   let direct_win (wr: win_ref) (u: url) (b: browser)
-//   : browser * list output_event =
-// // -- to do --
-//     assume (win_valid wr b);
-//     assert (win_valid wr b);
-//     let b' = close_doc_request_connections wr b in
-//     begin match u with
-//     | Blank_url ->
-//         let uw = win_to_user_window wr b' in
-//         let w = win_assoc_valid wr b' in
-//         let b'1 = page_remove w.win_page b' in
-//         let (w', b'2) = build_win w.win_name Blank_url w.win_opener None b'1 in
-//         let b'3 = win_update wr w' b'2 in
-//         let oe = UI_page_loaded_event(uw, Blank_url, None) in
-//         (b'3, [ oe ])
-//     | _ ->
-//         fetch_url u wr b
-//     end
+  let open_win (wn: win_name) (u: url) (wo: win_opener) (b: browser)
+  : win_ref * browser * list output_event =
+    let (w', b') = build_win wn Blank_url wo None b in
+    let (wr, b'') = win_new w' b' in
+    let (b''', oes) = fetch_url u wr b'' in
+    (wr, b''', UI_win_opened_event :: oes)
 
 
-//   (** {3 Node tree operations} *)
+(** [close_doc_request_connections wr b] removes any network connection
+      that is waiting for a document to load into the window referenced by
+      [wr]. *)
+  let close_doc_request_connections (wr: win_ref) (b: browser)
+  : browser =
+    if (win_valid wr b) then
+    let not_for_wr (_, _, dst) =
+      begin match dst with
+      | Doc_dst(wr') -> wr' <> wr
+      | _ -> true
+      end
+    in
+    let connections' = filter not_for_wr b.browser_connections in
+    { b with browser_connections = connections' }
+    else b
 
-//   (** [build_node_tree doc] allocates all of the node references needed to
-//       represent [doc] and returns the association list of these nodes with their
-//       appropriate node data.  It also returns the reference to the root of the
-//       node tree that was created. *)
-
-//   // let rec build_node_tree (doc: doc)
-//   // : node_ref * list (node_ref * node) =
-
-//   // // ---TO DO Recursion error--
-
-//   //   let dr = fresh_node_ref 0 in  // what to do give input? in fresh_node_ref()
-//   //   match doc with
-//   //   | Para(id, text) ->
-//   //       (dr, [ (dr, Para_node(id, text)) ])
-//   //   | Link(id, u, text) ->
-//   //       (dr, [ (dr, Link_node(id, u, text)) ])
-//   //   | Textbox(id, text) ->
-//   //       (dr, [ (dr, Textbox_node(id, text, [])) ])
-//   //   | Button(id, text) ->
-//   //       (dr, [ (dr, Button_node(id, text, [])) ])
-//   //   | Inl_script(id, e) ->
-//   //       (dr, [ (dr, Inl_script_node(id, e, false)) ])
-//   //   | Rem_script(id, u) ->
-//   //       (dr, [ (dr, Rem_script_node(id, u, false)) ])
-//   //   | Divi(id, subdocs) ->
-//   //       let (drs, nhs) = split (map build_node_tree subdocs) in
-//   //       (dr, (dr, Div_node(id, drs)) :: flatten nhs)
+ (** [direct_win wr u b] directs the window referenced by [wr] to the URL
+      [u]. *)
+  let direct_win (wr: win_ref) (u: url) (b: browser)
+  : browser * list output_event =
+    if (win_valid wr b) then
+    let b' = close_doc_request_connections wr b in
+    begin match u with
+    | Blank_url ->
+    if (win_valid wr b && page_valid (win_assoc_valid wr b).win_page b) then
+        let uw = win_to_user_window wr b' in
+        let w = win_assoc_valid wr b' in
+        let b'1 = page_remove w.win_page b' in
+        let (w', b'2) = build_win w.win_name Blank_url w.win_opener None b'1 in
+        let b'3 = win_update wr w' b'2 in
+        let oe = UI_page_loaded_event(uw, Blank_url, None) in
+        (b'3, [ oe ])
+    else (b, [UI_error "invalid win_ref or page_ref"])
+    | _ ->
+        fetch_url u wr b
+    end
+     else (b,[UI_error "invalid win_ref"])
 
 
-//   (** [split_queued_exprs qes] returns the prefix of [qes] that are known
-//       scripts, as an [inner expr list], along with the remainder of [qes]. *)
+  (** {3 Node tree operations} *)
+
+  (** [build_node_tree doc] allocates all of the node references needed to
+      represent [doc] and returns the association list of these nodes with their
+      appropriate node data.  It also returns the reference to the root of the
+      node tree that was created. *)
+
+  let rec build_node_tree (doc: doc)(b: browser)
+  : node_ref * list (node_ref * node) =
+
+  // ---TO DO Recursion error--
+  let n_ref = if length b.browser_nodes >= 1 then (fst (last b.browser_nodes)) else 0 in
+    let dr = fresh_node_ref n_ref in  
+    match doc with
+    | Para(id, text) ->
+        (dr, [ (dr, Para_node(id, text)) ])
+    | Link(id, u, text) ->
+        (dr, [ (dr, Link_node(id, u, text)) ])
+    | Textbox(id, text) ->
+        (dr, [ (dr, Textbox_node(id, text, [])) ])
+    | Button(id, text) ->
+        (dr, [ (dr, Button_node(id, text, [])) ])
+    | Inl_script(id, e) ->
+        (dr, [ (dr, Inl_script_node(id, e, false)) ])
+    | Rem_script(id, u) ->
+        (dr, [ (dr, Rem_script_node(id, u, false)) ])
+    | Divi(id, subdocs) ->                                 // --TO DO --
+        // let (drs, nhs) = split (map ( fun doc -> build_node_tree doc b) subdocs) in
+        (dr, [(dr, Div_node(id, []))])   //(dr, Div_node(id, drs)) :: flatten nhs)
+
+
+  (** [split_queued_exprs qes] returns the prefix of [qes] that are known
+      scripts, as an [inner expr list], along with the remainder of [qes]. *)
   
-//   // --- TO DO -- TYPE ERROR
-  
-//   // let split_queued_exprs (qes: list queued_expr)
-//   // : (list expr inner) * (list queued_expr)  =
-//   //   let rec take_ready qes =
-//   //     begin match qes with
-//   //     | Known_expr(e) :: ps1 -> e :: take_ready ps1
-//   //     | _ -> []
-//   //     end
-//   //   in
-//   //   let rec drop_ready qes =
-//   //     begin match qes with
-//   //     | Known_expr(e) :: ps1 -> drop_ready ps1
-//   //     | _ -> qes
-//   //     end
-//   //   in
-//   //   (take_ready qes, drop_ready qes)
+  let rec take_ready (qes: list queued_expr) =
+      begin match qes with
+      | Known_expr(e) :: ps1 -> e :: take_ready ps1
+      | _ -> []
+      end
+  let rec drop_ready (qes: list queued_expr) =
+      begin match qes with
+      | Known_expr(e) :: ps1 -> drop_ready ps1
+      | _ -> qes
+      end
+
+  let split_queued_exprs (qes: list queued_expr)
+  : (list(expr inner)) * (list queued_expr)  =
+    
+    (take_ready qes, drop_ready qes)
 
 
-//   // (**/**)
-//   // let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (b: browser)
-//   // : browser * list queued_expr * list output_event =
+  (**/**)
+  // let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (b: browser)
+  // : browser * list queued_expr * list output_event =
 
-//   // // -- TO DO --
-//   //   assume (page_valid pr b);
-//   //   assume (node_valid dr b);
-//   //   assert (page_valid pr b);
-//   //   assert (node_valid dr b);
-//   //   begin match node_assoc_valid dr b with
-//   //   | Para_node(_, _)
-//   //   | Link_node(_, _, _)
-//   //   | Textbox_node(_, _, _)
-//   //   | Button_node(_, _, _)
-//   //   | Inl_script_node(_, _, true)
-//   //   | Rem_script_node(_, _, true)
-//   //   | Rem_script_node(_, Blank_url, _) ->
-//   //       (b, [], [])
-//   //   | Inl_script_node(id, e, false) ->
-//   //       let b' = node_update dr (Inl_script_node(id, e, true)) b in
-//   //       (b', [ Known_expr(to_inner_expr e) ], [])
-//   //   | Rem_script_node(id, Http_url(d, uri), false) ->
-//   //       let b' = node_update dr (Rem_script_node(id, Http_url(d, uri), true)) b in
-//   //       let (b'', oe) = http_send d uri "" (Script_dst(pr, dr)) b' in
-//   //       (b'', [ Unknown_expr(dr) ], [ oe ])
-//   //   | Div_node(_, drs) ->
-//   //       process_node_scripts_list pr drs b
-//   //   end
+  // if (page_valid pr b && node_valid dr b) then
+  //   begin match node_assoc_valid dr b with
+  //   | Para_node(_, _)
+  //   | Link_node(_, _, _)
+  //   | Textbox_node(_, _, _)
+  //   | Button_node(_, _, _)
+  //   | Inl_script_node(_, _, true)
+  //   | Rem_script_node(_, _, true)
+  //   | Rem_script_node(_, Blank_url, _) ->
+  //       (b, [], [])
+  //   | Inl_script_node(id, e, false) ->
+  //       let b' = node_update dr (Inl_script_node(id, e, true)) b in
+  //       (b', [ Known_expr(to_inner_expr e) ], [])
+  //   | Rem_script_node(id, Http_url(d, uri), false) ->
+  //       let b' = node_update dr (Rem_script_node(id, Http_url(d, uri), true)) b in
+  //       let (b'', oe) = http_send d uri "" (Script_dst(pr, dr)) b' in
+  //       (b'', [ Unknown_expr(dr) ], [ oe ])
+  //   | Div_node(_, drs) ->
+  //       process_node_scripts_list pr drs b
+  //   end
+  //   else (b, [], [])
 
-//   // and process_node_scripts_list (pr: page_ref) (drs: list node_ref) (b: browser)
-//   // : browser * list queued_expr * list output_event =
-//   //   begin match drs with
-//   //   | [] -> (b, [], [])
-//   //   | dr' :: drs' ->
-//   //       let (b', pes1, oes1) = process_node_scripts_aux pr dr' b in
-//   //       let (b'', pes2, oes2) = process_node_scripts_list pr drs' b' in
-//   //       (b'', pes1 @ pes2, oes1 @ oes2)
-//   //   end
-//   // (**/**)
+  // and process_node_scripts_list (pr: page_ref) (drs: list node_ref) (b: browser)
+  // : browser * list queued_expr * list output_event =
+  //   begin match drs with
+  //   | [] -> (b, [], [])
+  //   | dr' :: drs' ->
+  //       let (b', pes1, oes1) = process_node_scripts_aux pr dr' b in
+  //       let (b'', pes2, oes2) = process_node_scripts_list pr drs' b' in
+  //       (b'', pes1 @ pes2, oes1 @ oes2)
+  //   end
+  (**/**)
 
-// //   (** [process_node_scripts pr dr b] prepares for execution all of the scripts
-// //       that are found among the descendents of [dr] and have not yet been
-// //       executed.  (Preparing them for execution means putting them in the proper
-// //       queue.)  It also generates network requests for all of the remote
-// //       scripts that have not been requested. *)
-// //   let rec process_node_scripts (pr: page_ref) (dr: node_ref) (b: browser)
-// //   : browser * list output_event * list task =
-// //     assert (page_valid pr b);
-// //     assert (node_valid dr b);
-// //     let (b', qes, oes) = process_node_scripts_aux pr dr b in
-// //     begin match page_win pr b with
-// //     | None ->
-// //         (b', oes, [])
-// //     | Some(wr) ->
-// //         let p = page_assoc_valid pr b' in
-// //         let (exprs, qes') = split_queued_exprs (p.page_script_queue @ qes) in
-// //         let p' = { p with page_script_queue = qes' } in
-// //         let b'' = page_update pr p' b' in
-// //         let task e = {
-// //           task_win = wr;
-// //           task_expr = e;
-// //         } in
-// //         (b'', oes, List.map task exprs)
-// //     end
+  (** [process_node_scripts pr dr b] prepares for execution all of the scripts
+      that are found among the descendents of [dr] and have not yet been
+      executed.  (Preparing them for execution means putting them in the proper
+      queue.)  It also generates network requests for all of the remote
+      scripts that have not been requested. *)
+  // let rec process_node_scripts (pr: page_ref) (dr: node_ref) (b: browser)
+  // : browser * list output_event * list task =
+  // if (node_valid dr b  && page_valid pr b) then
+  //   let (b', qes, oes) = process_node_scripts_aux pr dr b in
+  //   begin match page_win pr b with
+  //   | None ->
+  //       (b', oes, [])
+  //   | Some(wr) ->
+  //       let p = page_assoc_valid pr b' in
+  //       let (exprs, qes') = split_queued_exprs (p.page_script_queue @ qes) in
+  //       let p' = { p with page_script_queue = qes' } in
+  //       let b'' = page_update pr p' b' in
+  //       let task e = {
+  //         task_win = wr;
+  //         task_expr = e;
+  //       } in
+  //       (b'', oes, map task exprs)
+  //   end
+  //   else (b, [], [])
 
 //   (**/**)
 //   let rec textbox_handlers_in_tree dr b =
@@ -1211,93 +1202,101 @@ let rec set_var (x: var) (r: value) (ar: act_ref) (b: browser)
 // //         end
 // //     end
 
-//   (** {3 Inserting and removing document nodes} *)
+  (** {3 Inserting and removing document nodes} *)
 
-//   (** Removes a node from its location in its node tree or page. *)
-//   let node_remove (dr: node_ref) (b: browser)
-//   : b * output_event list =
-//     begin match node_parent dr b with
-//     | No_parent ->
-//         (b, [])
-//     | Page_parent(pr') ->
-//         let p = page_assoc_valid pr' b in
-//         let p' = { p with page_document = None } in
-//         let b' = page_update pr' p' b in
-//         (b', [ page_update_event pr' b' ])
-//     | Parent_node(p) ->
-//         begin match node_assoc_valid p b with
-//         | Div_node(id, children) ->
-//             let children' = List.filter (fun dr' -> dr' <> dr) children in
-//             let b' = node_update p (Div_node(id, children')) b in
-//             begin match node_page dr b with
-//             | None -> (b', [])
-//             | Some(pr') -> (b', [ page_update_event pr' b' ])
-//             end
-//         | _ -> assert false
-//         end
-//     end
+  (** Removes a node from its location in its node tree or page. *)
+  let node_remove (dr: node_ref) (b: browser)
+  : browser * list output_event =
+    begin match node_parent dr b with
+    | No_parent ->
+        (b, [])
+    | Page_parent(pr') ->
+        if (Some? (assoc pr' b.browser_pages)) then
+        let p = page_assoc_valid pr' b in
+        let p' = { p with page_document = None } in
+        let b' = page_update pr' p' b in
+        (b', [ page_update_event pr' b' ])
+        else (b, [UI_error "invalid page_ref" ])
+    | Parent_node(p) ->
+    if (node_valid p b) then
+        begin match node_assoc_valid p b with
+        | Div_node(id, children) ->
 
-//   (**/**)
-//   (** Computes the set of all descendents of a node. *)
-//   let rec node_descendents (strict: bool) (dr: node_ref) (b: browser)
-//   : node_ref list =
-//     assert (node_valid dr b);
-//     begin match node_assoc_valid dr b with
-//     | Div_node(_, drs) ->
-//         let dd dr = node_descendents false dr b in
-//         begin if strict then
-//           List.flatten (List.map dd drs)
-//         else
-//           dr :: List.flatten (List.map dd drs)
-//         end
-//     | _ ->
-//         if strict then [] else [ dr ]
-//     end
+            let children' = filter (fun dr' -> dr' <> dr) children in
+            if (b_node_ref_pred p (Div_node(id, children'))) then
+            let b' = node_update p (Div_node(id, children')) b in
+            begin match node_page dr b with
+            | None -> (b', [])
+            | Some(pr') -> (b', [ page_update_event pr' b' ])
+            end
+            else (b, [])
+        | _ -> (b, [UI_error "error" ])
+        end
+      else (b, [UI_error "invalid node_ref" ])
+    end
 
-//   (** [insert_in_list x xs k] inserts [x] as the [k]th element of [xs]. *)
-//   let rec insert_in_list (x: 'a) (xs: 'a list) (k: int)
-//   : 'a list =
-//     begin match (xs, k) with
-//     | (xs, 0) -> x :: xs
-//     | (x' :: xs', k) when k > 0 -> x' :: insert_in_list x xs' (k-1)
-//     | (_, _) -> failwith "insert_in_list"
-//     end
-//   (**/**)
+  (**/**)
+  (** Computes the set of all descendents of a node. *)
+  // let rec node_descendents (strict: bool) (dr: node_ref) (b: browser)
+  // : list node_ref  =
+  //   if (node_valid dr b) then 
+  //   begin match node_assoc_valid dr b with
+  //   | Div_node(_, drs) ->
+  //       let dd dr = node_descendents false dr b in
+  //       begin if strict then
+  //         flatten (map dd drs)
+  //       else
+  //         dr :: flatten (map dd drs)
+  //       end
+  //   | _ ->
+  //       if strict then [] else [ dr ]
+  //   end
+  //   else []
 
-//   (** [insert_node parent child pos b] inserts [child] into the children
-//       of [parent] at position [pos]. *)
-//   let node_insert (parent: node_ref) (child: node_ref) (pos: int) (b: browser)
-//   : b * output_event list * task list =
-//     assert (node_valid parent b);
-//     assert (node_valid child b);
-//     if List.mem parent (node_descendents true parent b) then
-//       failwith "node_insert";
-//     let (b', oes1) = node_remove child b in
-//     begin match node_assoc_valid parent b' with
-//     | Div_node(id, children) ->
-//         let children' = insert_in_list child children pos in
-//         let dn' = Div_node(id, children') in
-//         let b'' = node_update parent dn' b' in
-//         begin match node_page parent b'' with
-//         | None -> (b'', oes1, [])
-//         | Some(pr) ->
-//             let (b''', oes2, ts) = process_node_scripts pr child b'' in
-//             (b''', oes1 @ [ page_update_event pr b''' ] @ oes2, ts)
-//         end
-//     | _ -> failwith "node_insert"
-//     end 
+  (** [insert_in_list x xs k] inserts [x] as the [k]th element of [xs]. *)
+  let rec insert_in_list (x: 'a) (xs: list 'a ) (k: int)
+  : list 'a =
+    begin match (xs, k) with
+    | (xs, 0) -> x :: xs
+    | (x' :: xs', k) -> if k>0 then x' :: insert_in_list x xs' (k-1) else []
+    | (_, _) -> []
+    end
+  (**/**)
+
+  (** [insert_node parent child pos b] inserts [child] into the children
+      of [parent] at position [pos]. *)
+  // let node_insert (parent: node_ref) (child: node_ref) (posi: int) (b: browser)
+  // : b * list output_event list * list task =
+  //   assert (node_valid parent b);
+  //   assert (node_valid child b);
+  //   if List.mem parent (node_descendents true parent b) then
+  //     failwith "node_insert";
+  //   let (b', oes1) = node_remove child b in
+  //   begin match node_assoc_valid parent b' with
+  //   | Div_node(id, children) ->
+  //       let children' = insert_in_list child children pos in
+  //       let dn' = Div_node(id, children') in
+  //       let b'' = node_update parent dn' b' in
+  //       begin match node_page parent b'' with
+  //       | None -> (b'', oes1, [])
+  //       | Some(pr) ->
+  //           let (b''', oes2, ts) = process_node_scripts pr child b'' in
+  //           (b''', oes1 @ [ page_update_event pr b''' ] @ oes2, ts)
+  //       end
+  //   | _ -> failwith "node_insert"
+  //   end 
 
 //   (** {3 Executing scripts} *)
 
-//   (**/**)
-//   (** Converts a [value] to a [elt_id], if possible. *)
-//   let rslt_to_elt_it_opt (r: value)
-//   : option elt_id =
-//     begin match r with
-//     | String_value(id) -> Some({ elt_id_value = id })
-//     | _ -> None
-//     end
-//   (**/**)
+  (**/**)
+  (** Converts a [value] to a [elt_id], if possible. *)
+  let rslt_to_elt_it_opt (r: value)
+  : option elt_id =
+    begin match r with
+    | String_value(id) -> Some(id)
+    | _ -> None
+    end
+  (**/**)
 
 //   (** Carries out a single step of executing a script expression. *)
 //   let rec step_expr (ctx: context) (b: browser) (e: expr inner)

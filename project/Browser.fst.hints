@@ -1,5 +1,5 @@
 [
-  "+AAu║Sj╬k█ ²`Iод",
+  "<N-╢я:\u0018Всхwaшp┘z",
   [
     [
       "Browser.fresh_win_ref",
@@ -13,7 +13,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "57c4d6724e176d988e009c599116c2d9"
+      "999fed15da9da04dd0694d0cb4a64553"
     ],
     [
       "Browser.fresh_page_ref",
@@ -27,7 +27,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "4213d9469da5c4f6b305f3bd55631732"
+      "fc0ec44e29ac0888d2d6dfeb8b33f362"
     ],
     [
       "Browser.fresh_node_ref",
@@ -41,7 +41,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "500e7a141d4b4af780f4007a0328c026"
+      "d0c6416e8f8340ef71b3869533bc068d"
     ],
     [
       "Browser.fresh_act_ref",
@@ -55,7 +55,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "d44c943336d674f9d2a87650d0f7b5f9"
+      "cf3b2b29839f24307a1f1a253263c2a5"
     ],
     [
       "Browser.cookie_id",
@@ -71,7 +71,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "f91dbbcae5c11c099c747a1dc0838119"
+      "e57bc33eb00b7c0ac6f037f19e59e4ff"
     ],
     [
       "Browser.__proj__Str_name__item___0",
@@ -83,7 +83,7 @@
         "refinement_interpretation_Tm_refine_cfe20c806b22f91b9695b18e23657985"
       ],
       0,
-      "c9e8995e25cea956cb8a7bfec45af964"
+      "d0ed3f389ae2682af21b5e41b3becd66"
     ],
     [
       "Browser.win_opener",
@@ -98,7 +98,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "e019626331a38774e2db724aa3f67a6c"
+      "b581d6c916c7522ddd47f20632e59092"
     ],
     [
       "Browser.__proj__Win_opener__item___0",
@@ -110,7 +110,7 @@
         "refinement_interpretation_Tm_refine_b18ac766975ed27a7658fbff5c324604"
       ],
       0,
-      "ea8bd274786478a327f787e86c5351a7"
+      "b256a29eef80a7e2536b433c97ef03a6"
     ],
     [
       "Browser.win",
@@ -127,7 +127,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "8f9a60f2e0234f6ba595b5c1d25eee47"
+      "314ead8342b3ce112f9b40d501b50fe6"
     ],
     [
       "Browser.context",
@@ -142,7 +142,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "84822dbe714cfb7c1b6c282c45ffa2f6"
+      "52039f3e66f0ff783e684b2860d19faa"
     ],
     [
       "Browser.inner",
@@ -171,7 +171,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "bbfbca33725e5600e34f8cd798eca745"
+      "17da01aee9bc1044b91047268f41f96c"
     ],
     [
       "Browser.__proj__Scoped_expr__item___0",
@@ -183,7 +183,7 @@
         "refinement_interpretation_Tm_refine_e03cb992db474d5e289491d8d43ea96a"
       ],
       0,
-      "c2eb86dd663c8bd7fc9c4f608a11b526"
+      "2ea45c23c3c9687553cce786987bfd05"
     ],
     [
       "Browser.__proj__R__item___0",
@@ -195,7 +195,7 @@
         "refinement_interpretation_Tm_refine_217af1f038afcbeb5ef5dfdc5d7a074e"
       ],
       0,
-      "4a267181d5f2d01c5d93d221bde152c7"
+      "f3829d42a6c458918c9f2802a928f13c"
     ],
     [
       "Browser.__proj__Closure__item___0",
@@ -207,7 +207,7 @@
         "refinement_interpretation_Tm_refine_4c5a4ba27321d3884e6fc2fb743452ce"
       ],
       0,
-      "7e272d9a11c02b0c4d5e361cfbc26e49"
+      "a42961b4e26b7bcff8446a75da76e0f2"
     ],
     [
       "Browser.__proj__Closure__item___1",
@@ -219,7 +219,7 @@
         "refinement_interpretation_Tm_refine_4c5a4ba27321d3884e6fc2fb743452ce"
       ],
       0,
-      "93217012a1b4eab4570108a1bd5d1b8e"
+      "a6edd5bf0c4efc0a6f17bb3b40e98d5a"
     ],
     [
       "Browser.__proj__Closure__item___2",
@@ -231,7 +231,7 @@
         "refinement_interpretation_Tm_refine_4c5a4ba27321d3884e6fc2fb743452ce"
       ],
       0,
-      "694051d7f5edcd0c6c2a54fc6cb44eee"
+      "01a3cd6c3220f3dfddad6a1cad45a21c"
     ],
     [
       "Browser.__proj__Closure__item___3",
@@ -243,7 +243,7 @@
         "refinement_interpretation_Tm_refine_4c5a4ba27321d3884e6fc2fb743452ce"
       ],
       0,
-      "55f0fa59a76bd41c6ac92b0007b2484f"
+      "9ef40fe70ab8bd6f0ac5aeb813973920"
     ],
     [
       "Browser.__proj__Win_value__item___0",
@@ -255,7 +255,7 @@
         "refinement_interpretation_Tm_refine_7501c12e8330f2ac40fd0dc53cb5e3d8"
       ],
       0,
-      "5a39511cf7e95023d89ca3921edddd42"
+      "edb89b6a328e009c6515e3b0b71d96a9"
     ],
     [
       "Browser.__proj__Node_value__item___0",
@@ -267,7 +267,7 @@
         "refinement_interpretation_Tm_refine_b9a26b858bd62c0ec331c955a553cc5e"
       ],
       0,
-      "70c6968a439cc8bf382ddb3e1259c6c6"
+      "87fe7e367c3cc98ed481e4a4428f23b5"
     ],
     [
       "Browser.__proj__Bool_value__item___0",
@@ -279,7 +279,7 @@
         "refinement_interpretation_Tm_refine_605d37ea241c59bf7783e65f96faa8aa"
       ],
       0,
-      "35fa0fd7bcae3f354b222e0708748043"
+      "7e937e8f2df9469e7754ae7200860a3c"
     ],
     [
       "Browser.__proj__Int_value__item___0",
@@ -291,7 +291,7 @@
         "refinement_interpretation_Tm_refine_89eb7618f09b38c9fbc93a058287a533"
       ],
       0,
-      "1b77314ae1a580be93fc222c8dc1225b"
+      "93ef0921219cd506ccdbfccf48597423"
     ],
     [
       "Browser.__proj__String_value__item___0",
@@ -303,7 +303,7 @@
         "refinement_interpretation_Tm_refine_3ac74c7e3652ac0c8ff8ab2dbfc538fe"
       ],
       0,
-      "035855cf58f0423bf76f9b26040ab8a5"
+      "fa8fcdd8199626be331d3e70f348b2e1"
     ],
     [
       "Browser.__proj__Url_value__item___0",
@@ -315,7 +315,7 @@
         "refinement_interpretation_Tm_refine_5999d82997247450c65536b8b20e594c"
       ],
       0,
-      "8918f00d54d50154e07086b664837cd7"
+      "6cd9c73106394250c9521c2ad258befd"
     ],
     [
       "Browser.__proj__Type_value__item___0",
@@ -327,7 +327,7 @@
         "refinement_interpretation_Tm_refine_79f8348bc2d6fb9038a474e4d5bb245b"
       ],
       0,
-      "e8111dc9149cd33157d68d7fd95095b3"
+      "4824277087488d48f1258b3722462101"
     ],
     [
       "Browser.__proj__Code_value__item___0",
@@ -339,7 +339,7 @@
         "refinement_interpretation_Tm_refine_5c49100c913b0cc12b4498a07d7d3776"
       ],
       0,
-      "61e6a629fef3250a8b3d3ffd0689389c"
+      "8dcaeb59d533e5bdcddbc16f53bd056f"
     ],
     [
       "Browser.__proj__Error__item___0",
@@ -351,7 +351,7 @@
         "refinement_interpretation_Tm_refine_ed0c126d7cf6ad33bdfcd79fb2170111"
       ],
       0,
-      "f6edf42c7f1bcaa7e680db02885b5655"
+      "fa1c9e00766edb00eaec7fb19b02671b"
     ],
     [
       "Browser.prim2",
@@ -367,7 +367,7 @@
         "projection_inverse_BoxBool_proj_0"
       ],
       0,
-      "affae64f1479ac9fb035eeefc5943a51"
+      "90b3c2861f564b9c6ba0868ead501f1e"
     ],
     [
       "Browser.to_inner_expr",
@@ -457,7 +457,7 @@
         "subterm_ordering_BrowserIO.While", "subterm_ordering_BrowserIO.Xhr"
       ],
       0,
-      "1929bd2e162f83efe43a1f79f6828d90"
+      "b590405df4594a8e04c4e0850b0b0288"
     ],
     [
       "Browser.node",
@@ -494,7 +494,7 @@
         "typing_tok_BrowserIO.Blank_url@tok"
       ],
       0,
-      "78de8b5ec37d4af4d7a2f5d4bc57c196"
+      "8430f2d97aefe3bf3712926be3dc9ef4"
     ],
     [
       "Browser.__proj__Para_node__item___0",
@@ -506,7 +506,7 @@
         "refinement_interpretation_Tm_refine_4fcdcfd6518a428aa30514201ef540b6"
       ],
       0,
-      "6a0beeae2c0c6ce75308f4ee54a99bbe"
+      "37d0049b64599e79a4f9c757ac0d85b7"
     ],
     [
       "Browser.__proj__Link_node__item___0",
@@ -518,7 +518,7 @@
         "refinement_interpretation_Tm_refine_89ede14002d94b397e6ec713ed84a855"
       ],
       0,
-      "05fe63f73f3784694fee5d18a7ba3d97"
+      "e7ea65ff0feaac880aa8731cfcaaf3db"
     ],
     [
       "Browser.__proj__Textbox_node__item___0",
@@ -530,7 +530,7 @@
         "refinement_interpretation_Tm_refine_f9b382489152ed61f22af0c99f2cf34f"
       ],
       0,
-      "f566b8220ea18fd1a66bbdf3dba0ab07"
+      "bfe98fe0144b3248191ea44ff144f400"
     ],
     [
       "Browser.__proj__Button_node__item___0",
@@ -542,7 +542,7 @@
         "refinement_interpretation_Tm_refine_9d94a6b4fce2c110601fc9a872306c2e"
       ],
       0,
-      "d67a7aceb846e14514f39c1d77d70e79"
+      "985c608e1a06fe804499bc4e9455cf54"
     ],
     [
       "Browser.__proj__Inl_script_node__item___0",
@@ -554,7 +554,7 @@
         "refinement_interpretation_Tm_refine_ccf9bf5a8ab3db18f5bf567561d5bdd0"
       ],
       0,
-      "30a10799e19ac3e9d8b90d9e40567583"
+      "2750fedeb54090512ba2cf49fa9bb972"
     ],
     [
       "Browser.__proj__Rem_script_node__item___0",
@@ -566,7 +566,7 @@
         "refinement_interpretation_Tm_refine_a2823f1db8ec6eb9819845633eb354d6"
       ],
       0,
-      "6fff4a4845227ac0a3431bbb8cae9335"
+      "946c9cab3abe053a1cbad5fa666b3373"
     ],
     [
       "Browser.__proj__Div_node__item___0",
@@ -578,7 +578,7 @@
         "refinement_interpretation_Tm_refine_564f5c81e19e368ca94c3de8ee2269ad"
       ],
       0,
-      "4b1c89268163d86d26f42af100aed190"
+      "067ac6db61049bdd5bbec0c19bd5bf01"
     ],
     [
       "Browser.queued_expr",
@@ -596,7 +596,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "6939e11e1e2e9e77b2fd00885d4b5932"
+      "c6680a8673cc333ac5633a6e73c1797c"
     ],
     [
       "Browser.__proj__Known_expr__item___0",
@@ -608,7 +608,7 @@
         "refinement_interpretation_Tm_refine_1c8982dfd6f02483cbfc92ea9745b735"
       ],
       0,
-      "73a0dcd557b6da5a182e864bdfbfd43d"
+      "b679ee21c335acfd52cdf06e8b7d294e"
     ],
     [
       "Browser.__proj__Unknown_expr__item___0",
@@ -620,7 +620,7 @@
         "refinement_interpretation_Tm_refine_e00ff815b7d97bcfd04dbbcfe06d1eca"
       ],
       0,
-      "86c9dc26b9199335f6c139b13663d782"
+      "4ca3a6fd977df5b5ae375d61d6d46ebd"
     ],
     [
       "Browser.page",
@@ -641,7 +641,7 @@
         "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "d6e6e589a0cdefd071d194ae556aef43"
+      "d8a0ce0ec8f59722647a723e3b1623c4"
     ],
     [
       "Browser.act",
@@ -667,7 +667,7 @@
         "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "7d6da9c636fa9aa884031486a5f4a666"
+      "993d35bf07b47dd74e48b2401378152f"
     ],
     [
       "Browser.dst",
@@ -689,7 +689,7 @@
         "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "a20842bdf3d9f2522326ad50430977d0"
+      "c7152be740676821853a18d1865aa69a"
     ],
     [
       "Browser.__proj__Xhr_dst__item___0",
@@ -701,7 +701,7 @@
         "refinement_interpretation_Tm_refine_dd6e7a239f0c5f84fd3e3e5a40e14761"
       ],
       0,
-      "6a2d7688ec702bb82967ced7d86b3aa6"
+      "09c53b6c72deb2fd75f7f5237c0a633e"
     ],
     [
       "Browser.__proj__Doc_dst__item___0",
@@ -713,7 +713,7 @@
         "refinement_interpretation_Tm_refine_a018829325b2f845cf39020b56417beb"
       ],
       0,
-      "b7d3f9ea2eb5a2a383c9b5f67d0a8e1c"
+      "bd77527ff1a8b942ca66242b460787fa"
     ],
     [
       "Browser.__proj__Script_dst__item___0",
@@ -725,7 +725,7 @@
         "refinement_interpretation_Tm_refine_0c25e2946cdcf1932068a25c678b0be4"
       ],
       0,
-      "16a633c57830f0b5f99b3b5d6e4fe9b6"
+      "f938595a3e7781719274d4c7d41881a8"
     ],
     [
       "Browser.task",
@@ -743,7 +743,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "aac7702b13927aae34a137576fd2d5d4"
+      "a12909a3edf85ab6d856be5b5e9ba85b"
     ],
     [
       "Browser.b_act_ref_pred",
@@ -760,7 +760,7 @@
         "typing_Browser.__proj__Mkact__item__act_parent"
       ],
       0,
-      "f66bc88ecc0fa7dbb8ceb41d7e7dadb7"
+      "24de57c5a90f857bce766782caba4bbb"
     ],
     [
       "Browser.b_env_pred",
@@ -776,7 +776,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "d76f6f06fda560ed05dc92ce64f55c69"
+      "2b7e740d4d1fcd51a8f990a0f0996a8e"
     ],
     [
       "Browser.node_list_check",
@@ -792,7 +792,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "4a324ffa41d93c960006ec9555a128e9"
+      "903ade18f2a85ac862bc151925ef6903"
     ],
     [
       "Browser.b_node_pred",
@@ -808,7 +808,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "856d8376af2e82e18ec9c5fb67cda198"
+      "d47c2e9c2614aa124bb0960c79d375af"
     ],
     [
       "Browser.browser",
@@ -847,7 +847,7 @@
         "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "a74ccccd96be4ed609bcb40ead933c43"
+      "d45406fff8060e67df586609dd26360f"
     ],
     [
       "Browser.upd_assoc",
@@ -863,7 +863,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "5f8860cc5c4cb9501a9d673d928ba64b"
+      "dd6b9f7f8d99c74e49d5daf3e0e91db0"
     ],
     [
       "Browser.find_pos",
@@ -879,7 +879,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "10605b7cd83b7392f929a783191c5fcf"
+      "f919a9d4cf73d48853ee773bfceb4fa4"
     ],
     [
       "Browser.remove_assoc",
@@ -895,7 +895,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "270abc2d2ca61a352f8ac8ed9de93919"
+      "341b64f3f6883c20072c6999400d24b2"
     ],
     [
       "Browser.page_valid",
@@ -910,7 +910,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "40f2056b48ec82532c242ab329a8b88b"
+      "d5623273c2e31105db11603a21d7f36c"
     ],
     [
       "Browser.page_assoc",
@@ -925,7 +925,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "1066ce11f75facb178df3e7b6a73dbf4"
+      "60a683a490be2ec46619e48a37c8f78b"
     ],
     [
       "Browser.page_assoc_valid",
@@ -940,7 +940,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "27763ab3a50f9c5b8caf241ee367ed46"
+      "6c6ce0c48ecefe58f5072f2fac56d60d"
     ],
     [
       "Browser.page_assoc_valid",
@@ -956,7 +956,7 @@
         "refinement_interpretation_Tm_refine_47aad7509bb50917617136c102f91faf"
       ],
       0,
-      "7f9e2a2d258f9b41723cdc139b8210ee"
+      "c7ec6b3b9c1ed5c2a5b16577631920d2"
     ],
     [
       "Browser.page_update",
@@ -972,7 +972,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "a7c3cf0485f2d8d740d478f4497ab694"
+      "99af61d5af8832727bcd044a6c3afd18"
     ],
     [
       "Browser.page_new",
@@ -1006,7 +1006,7 @@
         "typing_Browser.b_env_pred", "typing_FStar.List.Tot.Base.length"
       ],
       0,
-      "5bcae727b4d6c3d92571b29b91b4613e"
+      "ef27d75e4bbdb3f9c01a86db8ecf1210"
     ],
     [
       "Browser.page_remove",
@@ -1022,7 +1022,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "c323723eaa2a40dc8dd272aac033ccb9"
+      "73580d6ca5877acb5910db07fd7cc63f"
     ],
     [
       "Browser.page_win",
@@ -1037,7 +1037,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "59c2a106caf648b9275d55cc750fba13"
+      "193d51a2026061c5d5566268020c88ad"
     ],
     [
       "Browser.win_valid",
@@ -1052,7 +1052,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "eea5e3c205f9d2ba3cdff6280dc4573c"
+      "90ae0fc4811faf386950cbf4501b8571"
     ],
     [
       "Browser.win_assoc",
@@ -1067,7 +1067,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "76aef7ee5c8707bb549cbd84262bdcbe"
+      "b29822e0fdc0f65c60dff3a40cb29594"
     ],
     [
       "Browser.win_assoc_valid",
@@ -1082,7 +1082,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "95b2310a90858791316db930279a917b"
+      "eb8171a3c9ba00f48fdcce722f6682ac"
     ],
     [
       "Browser.win_assoc_valid",
@@ -1098,7 +1098,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "84d51d92fc4f4c6781712bb877d537c3"
+      "06b5f10f46cd8430a0cb927826a86331"
     ],
     [
       "Browser.win_update",
@@ -1114,7 +1114,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "3b13f823f997599b51b9866336f7fa23"
+      "0a54b40cf904bdb60bfe6284acc4471d"
     ],
     [
       "Browser.win_new",
@@ -1137,7 +1137,7 @@
         "typing_Browser.__proj__Mkbrowser__item__browser_windows"
       ],
       0,
-      "04eae2ab452f7ebb3cf095e5804d4330"
+      "cf1a13b0babe390d0d4ac847483a6876"
     ],
     [
       "Browser.win_remove",
@@ -1161,7 +1161,7 @@
         "typing_Browser.win_assoc"
       ],
       0,
-      "5914236c7ce8624c795f1762a2c506ba"
+      "7d38cde24334687dd75c6adc2a38003d"
     ],
     [
       "Browser.win_from_win_name",
@@ -1186,7 +1186,7 @@
         "typing_FStar.List.Tot.Base.filter"
       ],
       0,
-      "cd1de5d6d8405c0bab95e0e887d0b700"
+      "707558bcd1e5bca78639b575539bb531"
     ],
     [
       "Browser.user_window_sub",
@@ -1211,7 +1211,7 @@
         "subterm_ordering_Prims.Cons", "typing_tok_BrowserIO.Blank_url@tok"
       ],
       0,
-      "5e7ae3d72343cebd7cb4f36735ff58d1"
+      "34d09f3e8f320a7d97ee86934315cf23"
     ],
     [
       "Browser.win_from_user_window",
@@ -1231,7 +1231,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "1d69bec34aa20fd1448ab80a9425da30"
+      "ac3c596b152ef1166fadeb6044af1ed5"
     ],
     [
       "Browser.find_win_pos",
@@ -1256,7 +1256,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "28a166b66ba1b212021823e0d132fe4f"
+      "ec0de270f9efe872fc93cf2c0871eacd"
     ],
     [
       "Browser.win_to_user_window",
@@ -1280,7 +1280,7 @@
         "typing_FStar.List.Tot.Base.assoc"
       ],
       0,
-      "cd963111c85151a9ebce19a5d0d0c56e"
+      "31b777b6a69a74575f9684575ca9bcd4"
     ],
     [
       "Browser.win_to_user_window",
@@ -1319,7 +1319,7 @@
         "typing_FStar.List.Tot.Base.assoc"
       ],
       0,
-      "8412c7b177cfaf32b32fa0d3faa8a728"
+      "9d61116e714a00135552d43bd489a40e"
     ],
     [
       "Browser.node_valid",
@@ -1334,7 +1334,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "595c6615a319c5c36c6a2cc56d35c572"
+      "c97a2dc9dc57ce742ed0e819aeb3bffb"
     ],
     [
       "Browser.node_assoc_valid_lemma",
@@ -1351,7 +1351,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "de18ddaa5b999ac2569e3c041e1c8437"
+      "938a8c3cf708b86efee7a5a5a4d2234e"
     ],
     [
       "Browser.node_assoc_valid_lemma",
@@ -1402,7 +1402,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "60dfb7e7a0246e1c99dad39e5328c4f7"
+      "c9d0709fb21986ce20f0a0f361f039ed"
     ],
     [
       "Browser.node_assoc_valid",
@@ -1434,7 +1434,7 @@
         "typing_Browser.node_valid"
       ],
       0,
-      "147e5e02c30605ccfa8430b07a62eb78"
+      "0f0c4347496c3b99b1c2524ece2ea35f"
     ],
     [
       "Browser.node_update_lemma",
@@ -1450,7 +1450,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "38d1cc8b26cc335818944ef9c0fd7e50"
+      "85c5ce1842f85b7a2ed97b2de2e516c8"
     ],
     [
       "Browser.node_update_lemma",
@@ -1496,7 +1496,7 @@
         "typing_Browser.upd_assoc", "unit_inversion", "unit_typing"
       ],
       0,
-      "689cc4a05dd346ba0fcbded5ccfc15b3"
+      "53526a992f5481555d6169608c617908"
     ],
     [
       "Browser.node_update",
@@ -1513,7 +1513,7 @@
         "refinement_interpretation_Tm_refine_4ea4d639c30b844b760b4ad96ea2e0fd"
       ],
       0,
-      "178b668e97aae6d45734fb32c9990f7f"
+      "03299a7aca8807bdb468a9fc5db03f2f"
     ],
     [
       "Browser.node_new",
@@ -1537,7 +1537,7 @@
         "typing_Browser.__proj__Mkbrowser__item__browser_nodes"
       ],
       0,
-      "f95a83ae6c7653eec7fc400f430c2943"
+      "b204856c46f9087815b5aa4cde5feddf"
     ],
     [
       "Browser.node_new",
@@ -1566,7 +1566,7 @@
         "typing_Browser.b_node_pred"
       ],
       0,
-      "341feb4dca104e06572136c201652166"
+      "bf4f8c03e89b8ca0009fdfd17b0d0eec"
     ],
     [
       "Browser.node_parent_type",
@@ -1581,7 +1581,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "36229541716d502eaee07b2e94bf3b13"
+      "6473dc8b2fb6f3887d209c25412d42e5"
     ],
     [
       "Browser.__proj__Page_parent__item___0",
@@ -1593,7 +1593,7 @@
         "refinement_interpretation_Tm_refine_3a91135164885afe07069fb13fa66260"
       ],
       0,
-      "1a61f5044e2ed2ed4e0be3d8b0fe3b4e"
+      "e65106f3a93bab825f478d7e6fa0c371"
     ],
     [
       "Browser.__proj__Parent_node__item___0",
@@ -1605,7 +1605,7 @@
         "refinement_interpretation_Tm_refine_85b6de8414498e133944de0f174ded60"
       ],
       0,
-      "546440c6f20d9274c3f0af8b74f84f3e"
+      "00746e0e59c0219fa68e386d8c8a053b"
     ],
     [
       "Browser.node_parent_bpages",
@@ -1629,7 +1629,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "14625f32f9a6b71ef8b7e80558073c62"
+      "801974e865d5b844c465ca0629334deb"
     ],
     [
       "Browser.node_parent_dnode_lemma",
@@ -1644,7 +1644,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "aa9c2e819cecd3aed09e74999196aaf1"
+      "615093491c3fd1fcb44c1faef372a094"
     ],
     [
       "Browser.node_parent_dnode_lemma",
@@ -1683,7 +1683,7 @@
         "typing_FStar.List.Tot.Base.mem"
       ],
       0,
-      "ebf2d0e18707e29fd992861be8f14fae"
+      "fb88eb30d7f0db1f898006440e5e7779"
     ],
     [
       "Browser.node_parent_dnode",
@@ -1720,7 +1720,7 @@
         "typing_Browser.b_node_ref_pred"
       ],
       0,
-      "42a2cd04fe579eed0bd00b7943140d92"
+      "60c8bba1dcd34a960d498cb0d90a6fdd"
     ],
     [
       "Browser.node_parent",
@@ -1747,7 +1747,7 @@
         "typing_Browser.node_parent_dnode"
       ],
       0,
-      "2ff48bc115c5b1769e1b1aba6be5e2ea"
+      "4b5f90967b21d5fe7a491bae37eeccff"
     ],
     [
       "Browser.node_page",
@@ -1783,7 +1783,7 @@
         "typing_Browser.node_parent_dnode", "well-founded-ordering-on-nat"
       ],
       0,
-      "79f3f02f1264c2d9c88fcb4260daa2fd"
+      "f57f0e03b103aa3817bbd27e5108df90"
     ],
     [
       "Browser.act_valid",
@@ -1798,7 +1798,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "8e4669be3fe0c91b744ccf9a5c6cabf3"
+      "a9d6db4e7003b155aed05a5fd1341e6e"
     ],
     [
       "Browser.act_assoc_valid_lemma",
@@ -1815,7 +1815,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "6bd3943f65c1e9b35d09ebce685c40e0"
+      "9841387b774460df0c720c73d30376f4"
     ],
     [
       "Browser.act_assoc_valid_lemma",
@@ -1866,7 +1866,7 @@
         "unit_inversion", "unit_typing"
       ],
       0,
-      "9295e97ec3100e90a17574d32054cd0f"
+      "135d5960c1355cc5b59237271bfc2c68"
     ],
     [
       "Browser.act_assoc_valid",
@@ -1900,7 +1900,7 @@
         "typing_FStar.List.Tot.Base.assoc"
       ],
       0,
-      "6733b29ec59ca375b8f48c0b8f00ac8b"
+      "68fe15008aa2da4376f29416449790c4"
     ],
     [
       "Browser.act_update_lemma",
@@ -1916,7 +1916,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "790ed2f4204b7b4abaa28382e4778283"
+      "0886fd0816348012a070493140cd6af4"
     ],
     [
       "Browser.act_update_lemma",
@@ -1963,7 +1963,7 @@
         "typing_Browser.upd_assoc", "unit_inversion", "unit_typing"
       ],
       0,
-      "586cdaeea1e6422b4fb3a19d39020cc5"
+      "c30fa486f1168351478d66f865c2215f"
     ],
     [
       "Browser.act_update",
@@ -1980,7 +1980,7 @@
         "refinement_interpretation_Tm_refine_76af731b096f287399e3d4ef4802f7b6"
       ],
       0,
-      "e93c7db7d37977e0115ff07f152d807b"
+      "12c56db46be0409f21e42ec7dca9599e"
     ],
     [
       "Browser.act_new",
@@ -2004,7 +2004,7 @@
         "typing_Browser.__proj__Mkbrowser__item__browser_environments"
       ],
       0,
-      "0603d3d1d1996f5557587435ae213e74"
+      "1571e01cfcb744902e4d00ef8dbecdde"
     ],
     [
       "Browser.act_new",
@@ -2033,7 +2033,7 @@
         "typing_Browser.b_env_pred"
       ],
       0,
-      "e78884e320eb83bb3413a8d7610380a7"
+      "85b6d5f38062524250bbb858bc14f899"
     ],
     [
       "Browser.get_var",
@@ -2062,7 +2062,7 @@
         "typing_Browser.b_act_ref_pred", "well-founded-ordering-on-nat"
       ],
       0,
-      "0ded2ca872f0a673f089379b4d5e3687"
+      "2cee57a52247b0773bf16c361e8af0ae"
     ],
     [
       "Browser.create_var",
@@ -2085,7 +2085,7 @@
         "typing_Browser.b_act_ref_pred"
       ],
       0,
-      "ff9b2ac9f10b587f1a32913c1eb22768"
+      "728dd01bda51a6307f25d2d0cb3dc6eb"
     ],
     [
       "Browser.set_var",
@@ -2121,7 +2121,7 @@
         "typing_Browser.b_act_ref_pred", "well-founded-ordering-on-nat"
       ],
       0,
-      "cd6aa90268f4676bcb1af61c4a499e6d"
+      "826f99ade593347acab63fb2f4529bce"
     ],
     [
       "Browser.prefix",
@@ -2137,7 +2137,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "e9857d47dc5565fd5dd70c00adcc5ea2"
+      "92cb7dda3a3b3d49755bfcfcfc094aec"
     ],
     [
       "Browser.get_site_cookies",
@@ -2151,7 +2151,7 @@
         "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
       ],
       0,
-      "28a8b018e5fe865d614e1eecf623f530"
+      "51d4cdc7c4a54e190a0352410af54dc6"
     ],
     [
       "Browser.del_site_cookie",
@@ -2160,7 +2160,7 @@
       1,
       [ "@query", "assumption_Browser.cookie_id__uu___haseq" ],
       0,
-      "7018aee995a96f1a6a40f8e1e2d21c83"
+      "7a5397daf36981d289d34fe1e92cb5ef"
     ],
     [
       "Browser.del_site_cookies",
@@ -2177,7 +2177,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "21ae8616ef9ac4a73b75cfb2170526a7"
+      "d21a619a8747185533597fdc97ea59d7"
     ],
     [
       "Browser.set_site_cookie",
@@ -2186,7 +2186,7 @@
       1,
       [ "@query", "assumption_Browser.cookie_id__uu___haseq" ],
       0,
-      "e190d10d8f276cbb93702f3ff720ebbb"
+      "4ee08b0894251876e1b80d4c5da37a3e"
     ],
     [
       "Browser.set_site_cookies",
@@ -2203,7 +2203,7 @@
         "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
       ],
       0,
-      "339e25f8922307035b17cedc5c628335"
+      "bfa6b325a0bcd270c60cd52b944f799e"
     ],
     [
       "Browser.net_connection_domain_nth",
@@ -2220,7 +2220,7 @@
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "fbfb07e79fbcae9f9b37f487f61e9cec"
+      "168fcba0b3e629f6b72bd1d3076f0c0b"
     ],
     [
       "Browser.remove",
@@ -2248,7 +2248,298 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "7d1c041b9c14179ba5069140299d161f"
+      "a1c40741e1de9651be9a9e3aaa94bed5"
+    ],
+    [
+      "Browser.render_doc_as_list",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "disc_equation_Browser.Button_node",
+        "disc_equation_Browser.Div_node",
+        "disc_equation_Browser.Inl_script_node",
+        "disc_equation_Browser.Link_node", "disc_equation_Browser.Para_node",
+        "disc_equation_Browser.Rem_script_node",
+        "disc_equation_Browser.Textbox_node",
+        "fuel_guarded_inversion_Browser.node",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_ce5c432f8e2179c88f3d5ee17906547c"
+      ],
+      0,
+      "1d83c456a167757fe38b7976e319e246"
+    ],
+    [
+      "Browser.render_page",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.render_doc_as_list.fuel_instrumented",
+        "@fuel_correspondence_FStar.List.Tot.Base.assoc.fuel_instrumented",
+        "@query", "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "disc_equation_Prims.Cons", "disc_equation_Prims.Nil",
+        "equation_Browser.node_ref", "equation_Browser.page_ref",
+        "equation_Browser.page_valid", "equation_Prims.eqtype",
+        "equation_Prims.nat", "fuel_guarded_inversion_Browser.browser",
+        "fuel_guarded_inversion_Prims.list",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "kinding_Browser.page@tok", "lemma_FStar.Pervasives.invertOption",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.__proj__Mkbrowser__item__browser_pages",
+        "typing_Browser.render_doc_as_list",
+        "typing_FStar.List.Tot.Base.assoc"
+      ],
+      0,
+      "c2cb5bdf6a87fe0d7acddebbeac63b1d"
+    ],
+    [
+      "Browser.page_update_event",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@fuel_correspondence_FStar.List.Tot.Base.assoc.fuel_instrumented",
+        "@query", "bool_inversion", "data_elim_Browser.Mkbrowser",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "equation_Browser.b_env", "equation_Browser.page_ref",
+        "equation_Browser.page_win", "equation_Browser.win_ref",
+        "equation_Browser.win_valid", "equation_Prims.eqtype",
+        "equation_Prims.nat", "fuel_guarded_inversion_Browser.browser",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "kinding_Browser.win@tok", "lemma_FStar.Pervasives.invertOption",
+        "primitive_Prims.op_AmpAmp", "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_e556a1d7a621448e48e0c8de4d09beca",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.__proj__Mkbrowser__item__browser_windows",
+        "typing_Browser.b_env_pred", "typing_Browser.page_win",
+        "typing_Browser.win_valid", "typing_FStar.List.Tot.Base.assoc"
+      ],
+      0,
+      "81ef86ebe7c1d0b0de71add0f66a15a1"
+    ],
+    [
+      "Browser.build_win",
+      1,
+      2,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@query", "bool_inversion",
+        "constructor_distinct_FStar.Pervasives.Native.None",
+        "equation_Browser.act_ref", "equation_Browser.b_act_ref_pred",
+        "equation_Browser.b_env", "equation_Prims.nat",
+        "equation_with_fuel_Browser.b_env_pred.fuel_instrumented",
+        "proj_equation_Browser.Mkact_act_parent",
+        "proj_equation_Browser.Mkbrowser_browser_environments",
+        "projection_inverse_Browser.Mkact_act_parent",
+        "projection_inverse_FStar.Pervasives.Native.None_a",
+        "refinement_interpretation_Tm_refine_e556a1d7a621448e48e0c8de4d09beca",
+        "token_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "typing_Browser.__proj__Mkbrowser__item__browser_environments"
+      ],
+      0,
+      "31671b9eff70941de7c4a9ea1b20a806"
+    ],
+    [
+      "Browser.fetch_url",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "disc_equation_BrowserIO.Blank_url",
+        "disc_equation_BrowserIO.Http_url",
+        "fuel_guarded_inversion_BrowserIO.url",
+        "projection_inverse_BoxBool_proj_0"
+      ],
+      0,
+      "3c70d386911c6f74a6a43457bc80374b"
+    ],
+    [
+      "Browser.close_doc_request_connections",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query", "equation_Browser.win_ref",
+        "equation_Prims.eqtype", "equation_Prims.nat",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f"
+      ],
+      0,
+      "ac0ffc9d69aeb8e8b960cfd5746f0356"
+    ],
+    [
+      "Browser.direct_win",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@fuel_correspondence_FStar.List.Tot.Base.assoc.fuel_instrumented",
+        "@query", "bool_inversion", "data_elim_Browser.Mkbrowser",
+        "data_elim_FStar.Pervasives.Native.Some",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "equation_Browser.b_env",
+        "equation_Browser.close_doc_request_connections",
+        "equation_Browser.page_valid", "equation_Browser.win_assoc_valid",
+        "equation_Browser.win_ref", "equation_Browser.win_valid",
+        "equation_Prims.eqtype", "equation_Prims.nat",
+        "fuel_guarded_inversion_Browser.browser",
+        "fuel_guarded_inversion_FStar.Pervasives.Native.option",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "kinding_Browser.win@tok", "lemma_FStar.Pervasives.invertOption",
+        "primitive_Prims.op_AmpAmp",
+        "proj_equation_Browser.Mkbrowser_browser_pages",
+        "proj_equation_Browser.Mkbrowser_browser_windows",
+        "proj_equation_FStar.Pervasives.Native.Some_v",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_Browser.Mkbrowser_browser_pages",
+        "projection_inverse_Browser.Mkbrowser_browser_windows",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_e556a1d7a621448e48e0c8de4d09beca",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.__proj__Mkbrowser__item__browser_windows",
+        "typing_Browser.__proj__Mkwin__item__win_page",
+        "typing_Browser.b_env_pred",
+        "typing_Browser.close_doc_request_connections",
+        "typing_Browser.page_valid", "typing_Browser.win_valid",
+        "typing_FStar.List.Tot.Base.assoc"
+      ],
+      0,
+      "88a8fadd6a84292beaa63c51a13596ec"
+    ],
+    [
+      "Browser.build_node_tree",
+      1,
+      2,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@fuel_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
+        "@query", "binder_x_37ca81ce456e8147636dda4db92ea084_1",
+        "binder_x_fecdd2dae570423a5bd1dd11a596e367_0", "bool_inversion",
+        "constructor_distinct_Tm_unit", "data_elim_Browser.Mkbrowser",
+        "disc_equation_BrowserIO.Button", "disc_equation_BrowserIO.Divi",
+        "disc_equation_BrowserIO.Inl_script", "disc_equation_BrowserIO.Link",
+        "disc_equation_BrowserIO.Para", "disc_equation_BrowserIO.Rem_script",
+        "disc_equation_BrowserIO.Textbox", "disc_equation_Prims.Cons",
+        "equation_Browser.b_env", "equation_Browser.b_nodes",
+        "equation_Browser.node_ref", "equation_Prims.nat",
+        "equation_with_fuel_FStar.List.Tot.Base.length.fuel_instrumented",
+        "fuel_guarded_inversion_Browser.browser",
+        "fuel_guarded_inversion_BrowserIO.doc", "int_inversion",
+        "kinding_Browser.node@tok",
+        "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "primitive_Prims.op_GreaterThanOrEqual",
+        "proj_equation_Browser.Mkbrowser_browser_nodes",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "refinement_interpretation_Tm_refine_0fe9be3218d1db3c2d0da0c2971b736b",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_e556a1d7a621448e48e0c8de4d09beca",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.__proj__Mkbrowser__item__browser_nodes",
+        "typing_Browser.b_env_pred", "typing_FStar.List.Tot.Base.length"
+      ],
+      0,
+      "be78f6ded00a4f6dca7aed986544d033"
+    ],
+    [
+      "Browser.take_ready",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "binder_x_1eb35bac429b3a4cc5ca6b28f8860bd3_0",
+        "subterm_ordering_Prims.Cons"
+      ],
+      0,
+      "333759d1b0411dfa533ec5dcfbb4c115"
+    ],
+    [
+      "Browser.drop_ready",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "binder_x_1eb35bac429b3a4cc5ca6b28f8860bd3_0",
+        "subterm_ordering_Prims.Cons"
+      ],
+      0,
+      "836f77fa1727c18e4f18378721093669"
+    ],
+    [
+      "Browser.node_remove",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@fuel_correspondence_Browser.node_page.fuel_instrumented", "@query",
+        "bool_inversion", "data_elim_Browser.Mkbrowser",
+        "disc_equation_Browser.No_parent",
+        "disc_equation_Browser.Page_parent",
+        "disc_equation_Browser.Parent_node",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "equation_Browser.b_env", "equation_Browser.node_parent",
+        "equation_Browser.node_ref", "equation_Browser.page_ref",
+        "equation_Prims.eqtype", "equation_Prims.nat",
+        "fuel_guarded_inversion_Browser.browser",
+        "fuel_guarded_inversion_Browser.node_parent_type",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "lemma_FStar.Pervasives.invertOption",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_e556a1d7a621448e48e0c8de4d09beca",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.b_env_pred", "typing_Browser.node_page",
+        "typing_Browser.node_parent"
+      ],
+      0,
+      "a656a3858b25d42359eca7679ca1eb13"
+    ],
+    [
+      "Browser.insert_in_list",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "binder_x_0a56e3de562c08d8ab59f4ac6f626a98_3",
+        "equation_Prims.op_Equals_Equals_Equals",
+        "projection_inverse_FStar.Pervasives.Native.Mktuple2__1",
+        "subterm_ordering_Prims.Cons"
+      ],
+      0,
+      "aca1a51765416c8080182c793471f9d4"
     ]
   ]
 ]

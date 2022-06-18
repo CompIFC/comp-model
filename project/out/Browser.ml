@@ -1075,3 +1075,262 @@ let (http_send :
                 BrowserIO.req_body = body
               } in
             (b', (BrowserIO.Network_send_event (d, req)))
+let rec (render_doc_as_list :
+  node_ref -> browser -> BrowserIO.rendered_doc Prims.list) =
+  fun dr ->
+    fun b ->
+      if node_valid dr b
+      then
+        match node_assoc_valid dr b with
+        | Para_node (uu___, txt) -> [BrowserIO.Para_rendered txt]
+        | Link_node (uu___, u, txt) -> [BrowserIO.Link_rendered (u, txt)]
+        | Textbox_node (uu___, txt, uu___1) ->
+            [BrowserIO.Textbox_rendered txt]
+        | Button_node (uu___, txt, uu___1) -> [BrowserIO.Button_rendered txt]
+        | Inl_script_node (uu___, uu___1, uu___2) -> []
+        | Rem_script_node (uu___, uu___1, uu___2) -> []
+        | Div_node (uu___, drs) -> [BrowserIO.Div_rendered []]
+      else []
+let (render_page :
+  page_ref ->
+    browser -> BrowserIO.rendered_doc FStar_Pervasives_Native.option)
+  =
+  fun pr ->
+    fun b ->
+      if page_valid pr b
+      then
+        match (page_assoc_valid pr b).page_document with
+        | FStar_Pervasives_Native.None -> FStar_Pervasives_Native.None
+        | FStar_Pervasives_Native.Some dr ->
+            (match render_doc_as_list dr b with
+             | [] -> FStar_Pervasives_Native.None
+             | rd::uu___ -> FStar_Pervasives_Native.Some rd)
+      else FStar_Pervasives_Native.None
+let (page_update_event : page_ref -> browser -> BrowserIO.output_event) =
+  fun pr ->
+    fun b ->
+      match page_win pr b with
+      | FStar_Pervasives_Native.None ->
+          BrowserIO.UI_error "page reference not found in browser"
+      | FStar_Pervasives_Native.Some wr ->
+          if
+            (win_valid wr b) &&
+              (page_valid (win_assoc_valid wr b).win_page b)
+          then
+            let uw = win_to_user_window wr b in
+            let rd_opt = render_page pr b in
+            BrowserIO.UI_page_updated_event (uw, rd_opt)
+          else BrowserIO.UI_error "invalid win_ref or page_ref"
+let (build_win :
+  win_name ->
+    BrowserIO.url ->
+      win_opener ->
+        node_ref FStar_Pervasives_Native.option -> browser -> (win * browser))
+  =
+  fun wn ->
+    fun u ->
+      fun wo ->
+        fun doc ->
+          fun b ->
+            let a =
+              { act_parent = FStar_Pervasives_Native.None; act_vars = [] } in
+            let uu___ = act_new a b in
+            match uu___ with
+            | (ar, b') ->
+                let p =
+                  {
+                    page_location = u;
+                    page_document = doc;
+                    page_environment = ar;
+                    page_script_queue = []
+                  } in
+                let uu___1 = page_new p b' in
+                (match uu___1 with
+                 | (pr, b'') ->
+                     let w =
+                       { win_name = wn; win_opener = wo; win_page = pr } in
+                     (w, b''))
+let (fetch_url :
+  BrowserIO.url ->
+    win_ref -> browser -> (browser * BrowserIO.output_event Prims.list))
+  =
+  fun u ->
+    fun wr ->
+      fun b ->
+        if win_valid wr b
+        then
+          match u with
+          | BrowserIO.Blank_url -> (b, [])
+          | BrowserIO.Http_url (d, uri) ->
+              let dst1 = Doc_dst wr in
+              let uu___ = http_send d uri "" dst1 b in
+              (match uu___ with | (b', oe) -> (b', [oe]))
+        else (b, [BrowserIO.UI_error "invalid win_ref"])
+let (open_win :
+  win_name ->
+    BrowserIO.url ->
+      win_opener ->
+        browser -> (win_ref * browser * BrowserIO.output_event Prims.list))
+  =
+  fun wn ->
+    fun u ->
+      fun wo ->
+        fun b ->
+          let uu___ =
+            build_win wn BrowserIO.Blank_url wo FStar_Pervasives_Native.None
+              b in
+          match uu___ with
+          | (w', b') ->
+              let uu___1 = win_new w' b' in
+              (match uu___1 with
+               | (wr, b'') ->
+                   let uu___2 = fetch_url u wr b'' in
+                   (match uu___2 with
+                    | (b''', oes) ->
+                        (wr, b''', (BrowserIO.UI_win_opened_event :: oes))))
+let (close_doc_request_connections : win_ref -> browser -> browser) =
+  fun wr ->
+    fun b ->
+      if win_valid wr b
+      then
+        let not_for_wr uu___ =
+          match uu___ with
+          | (uu___1, uu___2, dst1) ->
+              (match dst1 with | Doc_dst wr' -> wr' <> wr | uu___3 -> true) in
+        let connections' =
+          FStar_List_Tot_Base.filter not_for_wr b.browser_connections in
+        {
+          browser_windows = (b.browser_windows);
+          browser_pages = (b.browser_pages);
+          browser_nodes = (b.browser_nodes);
+          browser_environments = (b.browser_environments);
+          browser_cookies = (b.browser_cookies);
+          browser_connections = connections'
+        }
+      else b
+let (direct_win :
+  win_ref ->
+    BrowserIO.url -> browser -> (browser * BrowserIO.output_event Prims.list))
+  =
+  fun wr ->
+    fun u ->
+      fun b ->
+        if win_valid wr b
+        then
+          let b' = close_doc_request_connections wr b in
+          match u with
+          | BrowserIO.Blank_url ->
+              (if
+                 (win_valid wr b) &&
+                   (page_valid (win_assoc_valid wr b).win_page b)
+               then
+                 let uw = win_to_user_window wr b' in
+                 let w = win_assoc_valid wr b' in
+                 let b'1 = page_remove w.win_page b' in
+                 let uu___ =
+                   build_win w.win_name BrowserIO.Blank_url w.win_opener
+                     FStar_Pervasives_Native.None b'1 in
+                 match uu___ with
+                 | (w', b'2) ->
+                     let b'3 = win_update wr w' b'2 in
+                     let oe =
+                       BrowserIO.UI_page_loaded_event
+                         (uw, BrowserIO.Blank_url,
+                           FStar_Pervasives_Native.None) in
+                     (b'3, [oe])
+               else (b, [BrowserIO.UI_error "invalid win_ref or page_ref"]))
+          | uu___ -> fetch_url u wr b
+        else (b, [BrowserIO.UI_error "invalid win_ref"])
+let rec (build_node_tree :
+  BrowserIO.doc -> browser -> (node_ref * (node_ref * node) Prims.list)) =
+  fun doc ->
+    fun b ->
+      let n_ref =
+        if (FStar_List_Tot_Base.length b.browser_nodes) >= Prims.int_one
+        then
+          FStar_Pervasives_Native.fst
+            (FStar_List_Tot_Base.last b.browser_nodes)
+        else Prims.int_zero in
+      let dr = fresh_node_ref n_ref in
+      match doc with
+      | BrowserIO.Para (id, text) -> (dr, [(dr, (Para_node (id, text)))])
+      | BrowserIO.Link (id, u, text) ->
+          (dr, [(dr, (Link_node (id, u, text)))])
+      | BrowserIO.Textbox (id, text) ->
+          (dr, [(dr, (Textbox_node (id, text, [])))])
+      | BrowserIO.Button (id, text) ->
+          (dr, [(dr, (Button_node (id, text, [])))])
+      | BrowserIO.Inl_script (id, e) ->
+          (dr, [(dr, (Inl_script_node (id, e, false)))])
+      | BrowserIO.Rem_script (id, u) ->
+          (dr, [(dr, (Rem_script_node (id, u, false)))])
+      | BrowserIO.Divi (id, subdocs) -> (dr, [(dr, (Div_node (id, [])))])
+let rec (take_ready :
+  queued_expr Prims.list -> inner BrowserIO.expr Prims.list) =
+  fun qes ->
+    match qes with
+    | (Known_expr e)::ps1 -> e :: (take_ready ps1)
+    | uu___ -> []
+let rec (drop_ready : queued_expr Prims.list -> queued_expr Prims.list) =
+  fun qes ->
+    match qes with | (Known_expr e)::ps1 -> drop_ready ps1 | uu___ -> qes
+let (split_queued_exprs :
+  queued_expr Prims.list ->
+    (inner BrowserIO.expr Prims.list * queued_expr Prims.list))
+  = fun qes -> ((take_ready qes), (drop_ready qes))
+let (node_remove :
+  node_ref -> browser -> (browser * BrowserIO.output_event Prims.list)) =
+  fun dr ->
+    fun b ->
+      match node_parent dr b with
+      | No_parent -> (b, [])
+      | Page_parent pr' ->
+          if
+            FStar_Pervasives_Native.uu___is_Some
+              (FStar_List_Tot_Base.assoc pr' b.browser_pages)
+          then
+            let p = page_assoc_valid pr' b in
+            let p' =
+              {
+                page_location = (p.page_location);
+                page_document = FStar_Pervasives_Native.None;
+                page_environment = (p.page_environment);
+                page_script_queue = (p.page_script_queue)
+              } in
+            let b' = page_update pr' p' b in (b', [page_update_event pr' b'])
+          else (b, [BrowserIO.UI_error "invalid page_ref"])
+      | Parent_node p ->
+          if node_valid p b
+          then
+            (match node_assoc_valid p b with
+             | Div_node (id, children) ->
+                 let children' =
+                   FStar_List_Tot_Base.filter (fun dr' -> dr' <> dr) children in
+                 if b_node_ref_pred p (Div_node (id, children'))
+                 then
+                   let b' = node_update p (Div_node (id, children')) b in
+                   (match node_page dr b with
+                    | FStar_Pervasives_Native.None -> (b', [])
+                    | FStar_Pervasives_Native.Some pr' ->
+                        (b', [page_update_event pr' b']))
+                 else (b, [])
+             | uu___ -> (b, [BrowserIO.UI_error "error"]))
+          else (b, [BrowserIO.UI_error "invalid node_ref"])
+let rec insert_in_list :
+  'a . 'a -> 'a Prims.list -> Prims.int -> 'a Prims.list =
+  fun x ->
+    fun xs ->
+      fun k ->
+        match (xs, k) with
+        | (xs1, uu___) when uu___ = Prims.int_zero -> x :: xs1
+        | (x'::xs', k1) ->
+            if k1 > Prims.int_zero
+            then x' :: (insert_in_list x xs' (k1 - Prims.int_one))
+            else []
+        | (uu___, uu___1) -> []
+let (rslt_to_elt_it_opt :
+  value -> BrowserIO.elt_id FStar_Pervasives_Native.option) =
+  fun r ->
+    match r with
+    | String_value id -> FStar_Pervasives_Native.Some id
+    | uu___ -> FStar_Pervasives_Native.None
