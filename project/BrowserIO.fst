@@ -330,8 +330,8 @@ type network_input=
 | Receive: net_connection  -> response -> network_input
 
 // user IO syntax
-
-type user_window = url*nat
+(* start with number 1 to indicate 1st window *)
+type user_window = url * nat
 
 (** A type for identifying a text input box.  The integer refers to the position
     of the text box among all of the text boxes on a given page. *)

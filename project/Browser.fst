@@ -505,49 +505,47 @@ end
 
   (** [win_from_user_window uw b] returns a reference to the open window in [b]
       that corresponds to the domain and number given by [uw]. *)
+let rec user_window_sub (u: url) (bp:list (page_ref * page)) (l:list (win_ref * win)) 
+  : list (win_ref * win) =
+  match l with 
+  | [] -> []
+  | (wr, w)::tl -> (match assoc w.win_page bp with 
+		 | None -> user_window_sub u bp tl
+		 | Some p -> if p.page_location = u then (wr, w)::(user_window_sub u bp tl)
+			    else (user_window_sub u bp tl))
 
-    // --TO DO--
-assume val win_from_user_window (u n: user_window) (b:browser) : option win_ref
-// let win_from_user_window ((u, n): user_window) (b:browser)
-//   : option win_ref =
-//     let has_url (_, w) =
-//       ((page_assoc_valid w.win_page b).page_location = u) in 
-//   // page_assoc used instead of page_assoc_valid
-//     let windows' = filter has_url b.browser_windows in          
-//     begin if length windows' <= n then
-//       None
-//     else
-//       Some (fst (index b.browser_windows n))
-// end
+let win_from_user_window ((u, n): user_window) (b:browser)
+  : option win_ref =
+    let windows':list (win_ref * win) = user_window_sub u b.browser_pages b.browser_windows in          
+    begin 
+    if (length windows' <= n || n = 0) then
+      None
+    else (
+      (* return the nth element at n-1 location *)
+      assert (length windows' > n && n > 0);
+      Some (fst (index windows' (n-1))))
+    end
 
+let rec find_win_pos (wr:win_ref) (ws:list (win_ref * win)) (n:nat) : nat =
+  match ws with
+  | (wr', _) :: ws' -> if wr' = wr then n else find_win_pos wr ws' (n+1)
+  | [] -> 0 
+      
   (** [win_to_user_window wr b] returns the user window description
       corresponding to the valid window reference [wr]. *)
-
-// --- TO DO--
-// assume val win_to_user_window (wr: win_ref) (b: browser) : user_window
-// let win_to_user_window (wr: win_ref) (b: browser)
-//   : user_window =
-//     let w = win_assoc_valid wr b in
-//     let u = (page_assoc_valid w.win_page b).page_location in
-//     let has_url (_, w) =
-//       (page_assoc_valid w.win_page b).page_location = u
-//     in
-//     let windows' = filter has_url b.browser_windows in
-//     let rec find_pos wr ws n =
-//       begin match ws with
-//       | (wr', _) :: ws' -> if wr' = wr then n 
-//       else find_pos wr ws' n+1
-//       | _ -> admit()  // assert false   --TO DO--
-//       end
-//     in
-//     (u, find_pos wr windows' 0)
+let win_to_user_window (wr: win_ref) (b: browser{win_valid wr b /\ page_valid (win_assoc_valid wr b).win_page b})
+  : user_window =
+    let w = win_assoc_valid wr b in
+    let u = (page_assoc_valid w.win_page b).page_location in
+    let windows':list (win_ref * win) = user_window_sub u b.browser_pages b.browser_windows in
+    (u, find_win_pos wr windows' 0)
 
 
 (** {4 Browser node store} *)
 
   (** [node_valid dr b] returns [true] if [dr] is in the node store of
       [b]. *)
-  let node_valid (dr: node_ref) (b: browser)
+let node_valid (dr: node_ref) (b: browser)
   : bool =
     match (assoc dr b.browser_nodes) with 
   | None -> false
@@ -555,8 +553,6 @@ assume val win_from_user_window (u n: user_window) (b:browser) : option win_ref
 
 (** [node_assoc_valid dr b] returns the [node] associated with [dr] in the
       node store of [b]. *)
-
-// ---TO DO---
 let rec node_assoc_valid_lemma (dr: node_ref) (b:b_nodes):
   Lemma (requires (Some? (assoc dr b)))
 	(ensures (b_node_ref_pred dr (Some?.v (assoc dr b)))) =

@@ -661,13 +661,55 @@ let (win_from_win_name :
       match FStar_List_Tot_Base.filter has_name b.browser_windows with
       | [] -> FStar_Pervasives_Native.None
       | (wr, uu___)::uu___1 -> FStar_Pervasives_Native.Some wr
-let (win_from_user_window :
-  BrowserIO.user_window ->
-    BrowserIO.user_window ->
-      browser -> win_ref FStar_Pervasives_Native.option)
+let rec (user_window_sub :
+  BrowserIO.url ->
+    (page_ref * page) Prims.list ->
+      (win_ref * win) Prims.list -> (win_ref * win) Prims.list)
   =
   fun u ->
-    fun n -> fun b -> failwith "Not yet implemented:win_from_user_window"
+    fun bp ->
+      fun l ->
+        match l with
+        | [] -> []
+        | (wr, w)::tl ->
+            (match FStar_List_Tot_Base.assoc w.win_page bp with
+             | FStar_Pervasives_Native.None -> user_window_sub u bp tl
+             | FStar_Pervasives_Native.Some p ->
+                 if p.page_location = u
+                 then (wr, w) :: (user_window_sub u bp tl)
+                 else user_window_sub u bp tl)
+let (win_from_user_window :
+  BrowserIO.user_window -> browser -> win_ref FStar_Pervasives_Native.option)
+  =
+  fun uu___ ->
+    fun b ->
+      match uu___ with
+      | (u, n) ->
+          let windows' = user_window_sub u b.browser_pages b.browser_windows in
+          if
+            ((FStar_List_Tot_Base.length windows') <= n) ||
+              (n = Prims.int_zero)
+          then FStar_Pervasives_Native.None
+          else
+            FStar_Pervasives_Native.Some
+              (FStar_Pervasives_Native.fst
+                 (FStar_List_Tot_Base.index windows' (n - Prims.int_one)))
+let rec (find_win_pos :
+  win_ref -> (win_ref * win) Prims.list -> Prims.nat -> Prims.nat) =
+  fun wr ->
+    fun ws ->
+      fun n ->
+        match ws with
+        | (wr', uu___)::ws' ->
+            if wr' = wr then n else find_win_pos wr ws' (n + Prims.int_one)
+        | [] -> Prims.int_zero
+let (win_to_user_window : win_ref -> browser -> BrowserIO.user_window) =
+  fun wr ->
+    fun b ->
+      let w = win_assoc_valid wr b in
+      let u = (page_assoc_valid w.win_page b).page_location in
+      let windows' = user_window_sub u b.browser_pages b.browser_windows in
+      (u, (find_win_pos wr windows' Prims.int_zero))
 let (node_valid : node_ref -> browser -> Prims.bool) =
   fun dr ->
     fun b ->
