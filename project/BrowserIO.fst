@@ -66,55 +66,55 @@ type var = string
     documentation here. *)
 
 type  expr (a:Type)=
-    | X: a -> expr a
+    | X  of a
     (** Allows this data type to be extended with additional language constructs
         to be added, which will be needed for the internal language. *)
-    | Null: expr a
-    | Bool: bool -> expr a
-    | Int: int -> expr a
-    | String: string -> expr a
-    | Url: url -> expr a
-    | Types: typ-> expr a
-    | Seq: expr a-> expr a -> expr a
-    | If: expr a -> expr a -> expr a -> expr a
-    | While: expr a -> expr a-> expr a
+    | Null
+    | Bool of bool
+    | Int of int 
+    | String of string 
+    | Url of url 
+    | Types of typ
+    | Seq of expr a * expr a 
+    | If of expr a * expr a * expr a 
+    | While of expr a * expr a
 
     // primary functions
 
-    | Prim1: string -> expr a ->expr a
+    | Prim1 of string * expr a 
 
-    | Prim2: string -> expr a -> expr a ->expr a
+    | Prim2 of string * expr a * expr a 
 
-    | Alert: expr a -> expr a
+    | Alert of expr a 
     (** Sends a message to the user. *)
 
-    |Function: var -> list var -> expr a -> expr a
+    |Function of var * list var * expr a
      (** [Function(param, locals, body)] is a single-argument function, where
         [locals] are the additional variable names that will be used in the
         body. *)
 
-    | Apply: expr a -> expr a -> expr a
+    | Apply of expr a * expr a
     (** Applies a function to an argument. *)
 
-    | Code: expr False -> expr a
+    | Code of expr unit
 
-    | Eval: expr a -> expr a
+    | Eval of expr a 
 
-    | Var: var -> expr a
+    | Var of var 
 
-    | Set_var: var -> expr a-> expr a
+    | Set_var of var * expr a
 
     // Browser operations
 
-    | Get_cookie: expr a ->  expr a-> expr a
+    | Get_cookie of expr a *  expr a
     (** [Get_cookie(url, key)] gets the cookie value associated with [url].
         Returns null if there is no such cookie. *)
-    | Set_cookie : expr a ->  expr a-> expr a-> expr a
+    | Set_cookie of expr a *  expr a * expr a
     (** [Set_cookie(url, key, str)] updates (or creates) the cookie value
         associated with [url].  If [str] is [null], then the cookie is
         deleted. *)
 
-   | Xhr: expr a ->  expr a-> expr a-> expr a
+   | Xhr of expr a *  expr a * expr a
     (** [Xhr(url, msg, handler)] sends an HTTP request to [url] with the
         request body [msg].  If the response is a script and [handler] is a
         function, then the reponse will be supplied as a [Code] value to the
@@ -125,63 +125,63 @@ type  expr (a:Type)=
 
     // window operations
 
-    | Self_win: expr a
+    | Self_win 
         (** A reference to the statically enclosing window. *)
-    | Named_win: expr a ->expr a
+    | Named_win of expr a 
         (** [Named_win(str)] evaluates to the window whose string name is [str].
             It evalutes to [null] if there is no such window. *)
 
-    | Open_win: expr a->expr a
+    | Open_win of expr a
         (** [Open_win(url)] causes [url] to be loaded in a new, unnamed window.  A
             reference to the window is returned.  (The document will not be loaded
             in the window while the current script is running.)  If [url] is [null],
             a new blank window will be opened.  Returns a reference to the opened
             window. *)
-    | Open_named_win: expr a->expr a->expr a
+    | Open_named_win of expr a * expr a
         (** [Open_named_win(url, str)] causes [url] to be loaded in the window
             with the name [str].  If a window with name [str] does not exist, then
             it is created.  A reference to the window is returned.  (The document
             will not be loaded in the window while the current script is running.)
             If [url] is null and a window with that name exists, the window will not
             be navigated.  Returns a reference to the window. *)
-    | Close_win: expr a-> expr a
+    | Close_win of expr a
         (** [Close_win(win)] closes [win].  It is a no-op if [win] is not open. *)
-    | Navigate_win: expr a-> expr a-> expr a
+    | Navigate_win of expr a * expr a
         (** [Navigate_win(win, url)] causes [url] to be loaded in [win] and
             evaluates to [null].  ([win] will not be ready while the current script
             is running.)  It is an error if [win] is not open. *)
 
-    | Is_win_closed: expr a-> expr a
+    | Is_win_closed of expr a
         (** [Is_win_closed(win)] evaluates to false if [win] refers to an open
         * window and true otherwise. *)
-    | Get_win_opener: expr a-> expr a
+    | Get_win_opener of expr a
         (** [Get_win_opener(win)] evaluates to the "opener" of [win] or null if
             [win] has no opener. *)
-    | Get_win_location: expr a-> expr a
+    | Get_win_location of expr a
         (** [Get_win_location(win)] evaluates to the URL that is loaded into the
             window [win].  It is an error if [win] is not open. *)
 
-    | Get_win_name: expr a-> expr a
+    | Get_win_name of expr a
         (** [Get_win_name(win)] returns the string name of the window, or null if
             the window has no name.  It is an error if [win] is not open. *)
-    | Set_win_name: expr a-> expr a-> expr a
+    | Set_win_name of expr a * expr a
         (** [Set_win_name(win, str)] set the name of [win] to [str], or removes the
             name if [str] is [null].  It evaluates to [null].  It is an error if
             [win] is not open. *)
 
-    | Get_win_root_node: expr a-> expr a
+    | Get_win_root_node of expr a
         (** [Get_win_root_node(win)] gets the document root node of a window.  Returns
             null if the window has no document.  It is an error if [win] is not
             open. *)
-    | Set_win_root_node: expr a-> expr a->expr a
+    | Set_win_root_node of expr a * expr a
         (** [Set_win_root_node(win, node)] updates the document root node of a
             window.  It evaluates to [null].  It is an error if [win] is not
             open. *)
 
-    | Get_win_var:expr a-> var -> expr a
+    | Get_win_var of expr a * var 
         (** [Get_win_var(win, var)] looks up a variable in a window's environment.  It
             is an error if [win] is not open. *)
-    | Set_win_var: expr a -> var -> expr a-> expr a
+    | Set_win_var of expr a * var * expr a
         (** [Set_win_var(win, var, expr)] updates (or creates) a variable in a
             window's environment and evaluates to the new value.  It is an error if
             [win] is not open and ready. *)
@@ -192,59 +192,59 @@ type  expr (a:Type)=
 
 
 
-    | New_node: expr a -> expr a
+    | New_node of expr a 
     (** [New_node(desc)] returns a new node of the type matching [desc], which
         should be one of the following: "para", "link", "textbox", "button",
         "inl_script", "rem_script", or "div".  It is an error if [desc] does not
         match one of these strings. *)
-  | Get_node_type: expr a -> expr a
+  | Get_node_type of expr a 
     (** [Get_node_type(node)] returns one of the strings "para", "link",
         "textbox", "button", "inl_script", "rem_script", or "div". *)
 
-  | Get_node_contents: expr a-> expr a
+  | Get_node_contents of expr a
     (** [Get_node_contents(node)] returns the contents of nodes that may have
         non-empty contents.  For "para", "link", and "button" nodes, this is a
         [String] value.  For "inl_script" nodes, this is a [Code] value.  It is
         an error if [node] is not one of these types. *)
-  | Set_node_contents: expr a-> expr a->expr a
+  | Set_node_contents of expr a * expr a
     (** [Set_node_contents(node, value)] updates the contents of nodes that may
         have non-empty contents.  For "para", "link", and "button" nodes,
         [value] should be a [String] value.  For "inl_script" nodes, [value]
         should be a [Code] value.  It is an error if [node] is not one of these
         types. *)
-  | Get_node_attr: expr a-> expr a-> expr a
+  | Get_node_attr of expr a * expr a
     (** [Get_node_attr(node, attr)] returns the attributes described by the
         string [attr] of the node [node].  All node types have an attribute
         "id", which can be a [Null] or [String] value.  "link" nodes have an
         "href" attribute, which is a [Url] value.  "textbox" nodes have a
         "value" attribute, which is a [String] value.  "rem_script" nodes have a
         "src" attribute, which is a [Url] value. *)
-  | Set_node_attr: expr a-> expr a-> expr a-> expr a
+  | Set_node_attr of expr a * expr a * expr a
     (** [Set_node_attr(node, attr, value)] updates the attributes described by
         the string [attr] of the node [node] to have the value [value].  See
         [Get_node_attr] for attribute descriptions. *)
-  | Remove_handlers: expr a-> expr a
+  | Remove_handlers of expr a
     (** [Remove_handlers(node)] removes all handlers from the "textbox" or
         "button" node [node].  It is an error if [node] is not a "textbox" or
         "button" node. *)
-  | Add_handler: expr a-> expr a-> expr a
+  | Add_handler of expr a * expr a
     (** [Add_handler(node, h)] adds the [Function] value [h] as a handler to the
         "textbox" or "button" node [node].  [h] will be applied to [node] itself
         at the time the handler is triggered. *)
 
-  | Get_parent: expr a-> expr a
+  | Get_parent of expr a
     (** [Get_parent(node)] returns the parent node of [node] if it has one or
         returns [null] if it does not (or if it is the root node of a page). *)
-  | Get_child: expr a-> expr a -> expr a
+  | Get_child of expr a * expr a 
     (** [Get_child(node, pos)] returns the child node of [node] in
         position [pos] (counting from 0), or [null] if [node] has less than
         [pos + 1] children.  It is an error if [node] is not a "div" node. *)
-  | Insert_node: expr a-> expr a-> expr a-> expr a
+  | Insert_node of expr a * expr a * expr a
     (** [Insert_node(parent, node, pos)] inserts [node] as the child at
         position [pos] of the "div" node [parent].  It is an error if [parent]
         is not a "div" node; it is an error if [node] is an ancestor of
         [parent]; it is an error if [parent] has less than [pos] nodes. *)
-  | Remove_node: expr a-> expr a
+  | Remove_node of expr a 
     (** [Remove_node(node)] removes [node] (and therefore all of its
         descendents) from its parent node or removes directly from its enclosing
         window if it is a document root node. *)

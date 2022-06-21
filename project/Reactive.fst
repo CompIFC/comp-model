@@ -1,22 +1,22 @@
+module Reactive
 
+open BrowserIO
+open Assumed
+open Browser
 
-type running_browser={
-      Running_task_list: list task;
-      Running_browser: browser;
-}
+(** The definition of a reactive system. *)
 
-(* reactive system of browser *)
+  assume new type waiting
+  assume new type running
+  assume new type input_event
+  assume new type output_event
 
-type consumerState={
-    state: browser;
-}
+  noeq type state =
+    | Waiting of waiting
+    | Running of running
 
-type producerState={
-    state: running;
-}
+  assume new type start : state
 
+  val receive: input_event -> waiting -> state * list (output_event)
 
-type input=
-| User_input: user_input -> input
-
-| Network_input: network_input -> input
+  val continue: running -> state * list (output_event)

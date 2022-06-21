@@ -1075,22 +1075,36 @@ let (http_send :
                 BrowserIO.req_body = body
               } in
             (b', (BrowserIO.Network_send_event (d, req)))
+let rec concatMap :
+  'a 'b . 'a Prims.list -> ('a -> 'b Prims.list) -> 'b Prims.list =
+  fun l ->
+    fun f ->
+      match l with
+      | [] -> []
+      | h::t -> FStar_List_Tot_Base.op_At (f h) (concatMap t f)
 let rec (render_doc_as_list :
-  node_ref -> browser -> BrowserIO.rendered_doc Prims.list) =
-  fun dr ->
-    fun b ->
-      if node_valid dr b
-      then
-        match node_assoc_valid dr b with
-        | Para_node (uu___, txt) -> [BrowserIO.Para_rendered txt]
-        | Link_node (uu___, u, txt) -> [BrowserIO.Link_rendered (u, txt)]
-        | Textbox_node (uu___, txt, uu___1) ->
-            [BrowserIO.Textbox_rendered txt]
-        | Button_node (uu___, txt, uu___1) -> [BrowserIO.Button_rendered txt]
-        | Inl_script_node (uu___, uu___1, uu___2) -> []
-        | Rem_script_node (uu___, uu___1, uu___2) -> []
-        | Div_node (uu___, drs) -> [BrowserIO.Div_rendered []]
-      else []
+  b_nodes -> node_ref -> BrowserIO.rendered_doc Prims.list) =
+  fun b ->
+    fun dr ->
+      match b with
+      | [] -> []
+      | (nr, n)::tl ->
+          if nr = dr
+          then
+            (match n with
+             | Para_node (uu___, txt) -> [BrowserIO.Para_rendered txt]
+             | Link_node (uu___, u, txt) ->
+                 [BrowserIO.Link_rendered (u, txt)]
+             | Textbox_node (uu___, txt, uu___1) ->
+                 [BrowserIO.Textbox_rendered txt]
+             | Button_node (uu___, txt, uu___1) ->
+                 [BrowserIO.Button_rendered txt]
+             | Inl_script_node (uu___, uu___1, uu___2) -> []
+             | Rem_script_node (uu___, uu___1, uu___2) -> []
+             | Div_node (uu___, drs) ->
+                 [BrowserIO.Div_rendered
+                    (concatMap drs (render_doc_as_list tl))])
+          else render_doc_as_list tl dr
 let (render_page :
   page_ref ->
     browser -> BrowserIO.rendered_doc FStar_Pervasives_Native.option)
@@ -1102,7 +1116,7 @@ let (render_page :
         match (page_assoc_valid pr b).page_document with
         | FStar_Pervasives_Native.None -> FStar_Pervasives_Native.None
         | FStar_Pervasives_Native.Some dr ->
-            (match render_doc_as_list dr b with
+            (match render_doc_as_list b.browser_nodes dr with
              | [] -> FStar_Pervasives_Native.None
              | rd::uu___ -> FStar_Pervasives_Native.Some rd)
       else FStar_Pervasives_Native.None
@@ -1278,6 +1292,78 @@ let (split_queued_exprs :
   queued_expr Prims.list ->
     (inner BrowserIO.expr Prims.list * queued_expr Prims.list))
   = fun qes -> ((take_ready qes), (drop_ready qes))
+let rec (textbox_handlers_in_tree :
+  b_nodes -> node_ref -> (node_ref * value Prims.list) Prims.list) =
+  fun b_nodes' ->
+    fun dr ->
+      match b_nodes' with
+      | [] -> []
+      | (pr, n)::tl ->
+          if pr = dr
+          then
+            (match n with
+             | Para_node (uu___, uu___1) -> []
+             | Link_node (uu___, uu___1, uu___2) -> []
+             | Button_node (uu___, uu___1, uu___2) -> []
+             | Inl_script_node (uu___, uu___1, uu___2) -> []
+             | Rem_script_node (uu___, uu___1, uu___2) -> []
+             | Textbox_node (uu___, uu___1, handlers) -> [(dr, handlers)]
+             | Div_node (uu___, drs) ->
+                 concatMap drs (textbox_handlers_in_tree tl))
+          else textbox_handlers_in_tree tl dr
+let rec (button_handlers_in_tree :
+  b_nodes -> node_ref -> (node_ref * value Prims.list) Prims.list) =
+  fun b_nodes' ->
+    fun dr ->
+      match b_nodes' with
+      | [] -> []
+      | (pr, n)::tl ->
+          if pr = dr
+          then
+            (match n with
+             | Para_node (uu___, uu___1) -> []
+             | Link_node (uu___, uu___1, uu___2) -> []
+             | Textbox_node (uu___, uu___1, uu___2) -> []
+             | Inl_script_node (uu___, uu___1, uu___2) -> []
+             | Rem_script_node (uu___, uu___1, uu___2) -> []
+             | Button_node (uu___, uu___1, handlers) -> [(dr, handlers)]
+             | Div_node (uu___, drs) ->
+                 concatMap drs (button_handlers_in_tree tl))
+          else button_handlers_in_tree tl dr
+let (textbox_handlers_in_pos :
+  win_ref ->
+    Prims.nat ->
+      browser -> (node_ref * value Prims.list) FStar_Pervasives_Native.option)
+  =
+  fun wr ->
+    fun posi ->
+      fun b ->
+        if (win_valid wr b) && (page_valid (win_assoc_valid wr b).win_page b)
+        then
+          match (page_assoc_valid (win_assoc_valid wr b).win_page b).page_document
+          with
+          | FStar_Pervasives_Native.None -> FStar_Pervasives_Native.None
+          | FStar_Pervasives_Native.Some root ->
+              FStar_List_Tot_Base.nth
+                (textbox_handlers_in_tree b.browser_nodes root) posi
+        else FStar_Pervasives_Native.None
+let (button_handlers_in_pos :
+  win_ref ->
+    Prims.nat ->
+      browser -> (node_ref * value Prims.list) FStar_Pervasives_Native.option)
+  =
+  fun wr ->
+    fun posi ->
+      fun b ->
+        if (win_valid wr b) && (page_valid (win_assoc_valid wr b).win_page b)
+        then
+          match (page_assoc_valid (win_assoc_valid wr b).win_page b).page_document
+          with
+          | FStar_Pervasives_Native.None -> FStar_Pervasives_Native.None
+          | FStar_Pervasives_Native.Some root ->
+              FStar_List_Tot_Base.nth
+                (button_handlers_in_tree b.browser_nodes root) posi
+        else FStar_Pervasives_Native.None
 let (node_remove :
   node_ref -> browser -> (browser * BrowserIO.output_event Prims.list)) =
   fun dr ->
@@ -1316,6 +1402,19 @@ let (node_remove :
                  else (b, [])
              | uu___ -> (b, [BrowserIO.UI_error "error"]))
           else (b, [BrowserIO.UI_error "invalid node_ref"])
+let rec (node_descendents : b_nodes -> node_ref -> node_ref Prims.list) =
+  fun b ->
+    fun dr ->
+      match b with
+      | [] -> []
+      | (pr, n)::tl ->
+          if pr = dr
+          then
+            (match n with
+             | Div_node (uu___, drs) -> dr ::
+                 (concatMap drs (node_descendents tl))
+             | uu___ -> [dr])
+          else node_descendents tl dr
 let rec insert_in_list :
   'a . 'a -> 'a Prims.list -> Prims.int -> 'a Prims.list =
   fun x ->
