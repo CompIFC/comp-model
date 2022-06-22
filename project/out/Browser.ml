@@ -910,11 +910,13 @@ let rec prefix : 'a . 'a Prims.list -> 'a Prims.list -> Prims.bool =
       | (uu___, uu___1) -> false
 let (get_site_cookies :
   BrowserIO.domain ->
-    BrowserIO.path -> browser -> (Prims.string * Prims.string) Prims.list)
+    BrowserIO.path ->
+      (cookie_id * Prims.string) Prims.list ->
+        (Prims.string * Prims.string) Prims.list)
   =
   fun d ->
     fun p ->
-      fun b ->
+      fun cookies ->
         let check uu___ =
           match uu___ with
           | (cid, uu___1) ->
@@ -924,7 +926,7 @@ let (get_site_cookies :
         let strip uu___ =
           match uu___ with | (cid, rslt) -> ((cid.cookie_id_key), rslt) in
         FStar_List_Tot_Base.map strip
-          (FStar_List_Tot_Base.filter check b.browser_cookies)
+          (FStar_List_Tot_Base.filter check cookies)
 let (del_site_cookie :
   BrowserIO.domain -> BrowserIO.path -> Prims.string -> browser -> browser) =
   fun d ->
@@ -1071,7 +1073,8 @@ let (http_send :
               {
                 BrowserIO.req_uri = uri;
                 BrowserIO.req_cookies =
-                  (get_site_cookies d uri.BrowserIO.req_uri_path b);
+                  (get_site_cookies d uri.BrowserIO.req_uri_path
+                     b.browser_cookies);
                 BrowserIO.req_body = body
               } in
             (b', (BrowserIO.Network_send_event (d, req)))
@@ -1082,6 +1085,33 @@ let rec concatMap :
       match l with
       | [] -> []
       | h::t -> FStar_List_Tot_Base.op_At (f h) (concatMap t f)
+type 'b list_without_div_nodes = Obj.t
+
+let rec (get_nodes_as_list' :
+  b_nodes -> node_ref -> (node_ref * node) Prims.list) =
+  fun b ->
+    fun dr ->
+      match b with
+      | [] -> []
+      | (nr, nd)::tl ->
+          if nr = dr
+          then
+            (match nd with
+             | Para_node n -> [(nr, nd)]
+             | Link_node n -> [(nr, nd)]
+             | Textbox_node n -> [(nr, nd)]
+             | Button_node n -> [(nr, nd)]
+             | Inl_script_node n -> [(nr, nd)]
+             | Rem_script_node n -> [(nr, nd)]
+             | Div_node (uu___, drs) -> concatMap drs (get_nodes_as_list' tl))
+          else get_nodes_as_list' tl dr
+let rec (get_bnodes_from_nlist : (node_ref * node) Prims.list -> b_nodes) =
+  fun b ->
+    match b with
+    | [] -> []
+    | (nr, n)::tl -> (nr, n) :: (get_bnodes_from_nlist tl)
+let (get_nodes_as_list : b_nodes -> node_ref -> b_nodes) =
+  fun b -> fun dr -> get_bnodes_from_nlist (get_nodes_as_list' b dr)
 let rec (render_doc_as_list :
   b_nodes -> node_ref -> BrowserIO.rendered_doc Prims.list) =
   fun b ->
@@ -1292,6 +1322,156 @@ let (split_queued_exprs :
   queued_expr Prims.list ->
     (inner BrowserIO.expr Prims.list * queued_expr Prims.list))
   = fun qes -> ((take_ready qes), (drop_ready qes))
+let (process_node_aux :
+  page_ref ->
+    node_ref ->
+      node ->
+        b_conn ->
+          (cookie_id * Prims.string) Prims.list ->
+            (node * queued_expr Prims.list * BrowserIO.output_event
+              Prims.list * b_conn))
+  =
+  fun pr ->
+    fun dr ->
+      fun bn ->
+        fun bc ->
+          fun cookies ->
+            match bn with
+            | Para_node (uu___, uu___1) -> (bn, [], [], bc)
+            | Link_node (uu___, uu___1, uu___2) -> (bn, [], [], bc)
+            | Textbox_node (uu___, uu___1, uu___2) -> (bn, [], [], bc)
+            | Button_node (uu___, uu___1, uu___2) -> (bn, [], [], bc)
+            | Inl_script_node (uu___, uu___1, true) -> (bn, [], [], bc)
+            | Rem_script_node (uu___, uu___1, true) -> (bn, [], [], bc)
+            | Rem_script_node (uu___, BrowserIO.Blank_url, uu___1) ->
+                (bn, [], [], bc)
+            | Inl_script_node (id, e, false) ->
+                ((Inl_script_node (id, e, true)),
+                  [Known_expr (to_inner_expr e)], [], bc)
+            | Rem_script_node (id, BrowserIO.Http_url (d, uri), false) ->
+                let conn' = (d, uri, (Script_dst (pr, dr))) :: bc in
+                let req =
+                  {
+                    BrowserIO.req_uri = uri;
+                    BrowserIO.req_cookies =
+                      (get_site_cookies d uri.BrowserIO.req_uri_path cookies);
+                    BrowserIO.req_body = ""
+                  } in
+                let oe = BrowserIO.Network_send_event (d, req) in
+                ((Rem_script_node (id, (BrowserIO.Http_url (d, uri)), true)),
+                  [Unknown_expr dr], [oe], conn')
+let rec (process_node_list_aux :
+  page_ref ->
+    b_nodes ->
+      node_ref Prims.list ->
+        b_conn ->
+          (cookie_id * Prims.string) Prims.list ->
+            (b_nodes * queued_expr Prims.list * BrowserIO.output_event
+              Prims.list * b_conn))
+  =
+  fun pr ->
+    fun bn ->
+      fun drs ->
+        fun bc ->
+          fun cookies ->
+            match bn with
+            | [] -> ([], [], [], bc)
+            | (dr, n)::tl ->
+                if FStar_List_Tot_Base.mem dr drs
+                then
+                  (match n with
+                   | Div_node uu___ ->
+                       let uu___1 =
+                         process_node_list_aux pr tl drs bc cookies in
+                       (match uu___1 with
+                        | (ln, q, oe, bc') -> (((dr, n) :: ln), q, oe, bc'))
+                   | uu___ ->
+                       let uu___1 = process_node_aux pr dr n bc cookies in
+                       (match uu___1 with
+                        | (n', q, oe, bc') ->
+                            let uu___2 =
+                              process_node_list_aux pr tl drs bc' cookies in
+                            (match uu___2 with
+                             | (ln, q', oe', bc'') ->
+                                 (((dr, n') :: ln),
+                                   (FStar_List_Tot_Base.op_At q q'),
+                                   (FStar_List_Tot_Base.op_At oe oe'), bc''))))
+                else process_node_list_aux pr tl drs bc cookies
+let rec (process_node_scripts_aux :
+  page_ref ->
+    node_ref ->
+      b_nodes ->
+        b_conn ->
+          (cookie_id * Prims.string) Prims.list ->
+            (b_nodes * queued_expr Prims.list * BrowserIO.output_event
+              Prims.list * b_conn))
+  =
+  fun pr ->
+    fun dr ->
+      fun bn ->
+        fun bc ->
+          fun cookies ->
+            match bn with
+            | [] -> (bn, [], [], bc)
+            | (nr, n)::tl ->
+                if nr = dr
+                then
+                  (match n with
+                   | Div_node (uu___, drs) ->
+                       process_node_list_aux pr tl drs bc cookies
+                   | uu___ ->
+                       let uu___1 = process_node_aux pr dr n bc cookies in
+                       (match uu___1 with
+                        | (n', q, oe, bc') -> (((nr, n') :: tl), q, oe, bc')))
+                else
+                  (let uu___1 = process_node_scripts_aux pr dr tl bc cookies in
+                   match uu___1 with
+                   | (bn', q, oe, bc') -> (((nr, n) :: bn'), q, oe, bc'))
+let rec (process_node_scripts :
+  page_ref ->
+    node_ref ->
+      browser ->
+        (browser * BrowserIO.output_event Prims.list * task Prims.list))
+  =
+  fun pr ->
+    fun dr ->
+      fun b ->
+        if (node_valid dr b) && (page_valid pr b)
+        then
+          let uu___ =
+            process_node_scripts_aux pr dr b.browser_nodes
+              b.browser_connections b.browser_cookies in
+          match uu___ with
+          | (bn', qes, oes, bc') ->
+              let b' =
+                {
+                  browser_windows = (b.browser_windows);
+                  browser_pages = (b.browser_pages);
+                  browser_nodes = bn';
+                  browser_environments = (b.browser_environments);
+                  browser_cookies = (b.browser_cookies);
+                  browser_connections = bc'
+                } in
+              (match page_win pr b with
+               | FStar_Pervasives_Native.None -> (b', oes, [])
+               | FStar_Pervasives_Native.Some wr ->
+                   let p = page_assoc_valid pr b' in
+                   let uu___1 =
+                     split_queued_exprs
+                       (FStar_List_Tot_Base.op_At p.page_script_queue qes) in
+                   (match uu___1 with
+                    | (exprs, qes') ->
+                        let p' =
+                          {
+                            page_location = (p.page_location);
+                            page_document = (p.page_document);
+                            page_environment = (p.page_environment);
+                            page_script_queue = qes'
+                          } in
+                        let b'' = page_update pr p' b' in
+                        let task1 e = { task_win = wr; task_expr = e } in
+                        (b'', oes, (FStar_List_Tot_Base.map task1 exprs))))
+        else (b, [], [])
 let rec (textbox_handlers_in_tree :
   b_nodes -> node_ref -> (node_ref * value Prims.list) Prims.list) =
   fun b_nodes' ->

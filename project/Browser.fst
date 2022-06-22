@@ -758,7 +758,7 @@ let rec set_var (x: var) (r: value) (ar: act_ref) (b: browser)
 
   (** [get_site_cookies d p b] builds the mapping of cookie keys and values
       that is specific for the domain [d] and the path [p] in [b]. *)
-  let get_site_cookies (d: domain) (p: path) (b: browser)
+  let get_site_cookies (d: domain) (p: path) (cookies: list (cookie_id * string))
   : list (string * string)=
     let check (cid, _) =
       (cid.cookie_id_domain = d &&
@@ -767,7 +767,7 @@ let rec set_var (x: var) (r: value) (ar: act_ref) (b: browser)
           cid.cookie_id_path = [])
     in
     let strip (cid, rslt) = (cid.cookie_id_key, rslt) in
-    map strip (filter check b.browser_cookies)
+    map strip (filter check cookies)
 
 
 (** [del_site_cookie d p k b] removes the mapping for of cookie key [k] for
@@ -871,7 +871,7 @@ let rec set_var (x: var) (r: value) (ar: act_ref) (b: browser)
       b with browser_connections = connections';} in
     let req = {
       req_uri = uri;
-      req_cookies = get_site_cookies d uri.req_uri_path b;
+      req_cookies = get_site_cookies d uri.req_uri_path b.browser_cookies;
       req_body = body;
     } in
     (b', Network_send_event(d, req))
@@ -884,7 +884,45 @@ let rec set_var (x: var) (r: value) (ar: act_ref) (b: browser)
   | [] -> []
   | h::t -> f h @ (concatMap t f)
 
+let rec list_without_div_nodes (b: (list (node_ref * node))) : Type0 = 
+  match b with 
+  | [] -> True
+  | (nr, n)::tl -> (match n with | Div_node _ -> False | _ -> list_without_div_nodes tl)
+
+let rec list_without_div_nodes_lemma (b: (list (node_ref * node))) : Lemma (list_without_div_nodes b ==> b_node_pred b) =
+  match b with 
+  | [] -> ()
+  | (nr, n)::tl -> list_without_div_nodes_lemma tl
+
 // (**/**)
+let rec get_nodes_as_list' (b: b_nodes) (dr: node_ref) 
+  : b':list (node_ref * n:node{match n with | Div_node _ -> False | _ -> True}) =
+  match b with 
+  | [] -> []
+  | (nr, nd)::tl ->
+    if nr = dr then 
+      begin 
+      match nd with 
+      | Para_node n 
+      | Link_node n
+      | Textbox_node n
+      | Button_node n
+      | Inl_script_node n
+      | Rem_script_node n -> [(nr, nd)]
+      | Div_node (_, drs) ->
+	assert (node_list_check drs dr);
+        (concatMap drs (get_nodes_as_list' tl))
+      end
+    else get_nodes_as_list' tl dr
+
+let rec get_bnodes_from_nlist (b:list (node_ref * n:node{match n with | Div_node _ -> False | _ -> True})) : (b':b_nodes{list_without_div_nodes b'}) =
+  match b with
+  | [] -> []
+  | (nr, n)::tl -> assert (match n with | Div_node _ -> False | _ -> True);
+		 (nr, n)::(get_bnodes_from_nlist tl)
+
+let get_nodes_as_list b dr : (b:b_nodes{list_without_div_nodes b}) = get_bnodes_from_nlist (get_nodes_as_list' b dr)
+  
 let rec render_doc_as_list (b: b_nodes) (dr: node_ref) 
   : list rendered_doc =
   match b with 
@@ -1081,81 +1119,89 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
 
   let split_queued_exprs (qes: list queued_expr)
   : (list(expr inner)) * (list queued_expr)  =
-    
     (take_ready qes, drop_ready qes)
 
+let process_node_aux (pr: page_ref) (dr: node_ref) (bn: node{match bn with | Div_node _ -> False | _ -> True}) (bc: b_conn) (cookies: list (cookie_id * string))
+  : Tot (node * list queued_expr * list output_event * b_conn)  =
+  begin match bn with
+  | Para_node(_, _)
+  | Link_node(_, _, _)
+  | Textbox_node(_, _, _)
+  | Button_node(_, _, _)
+  | Inl_script_node(_, _, true)
+  | Rem_script_node(_, _, true)
+  | Rem_script_node(_, Blank_url, _) ->
+		       (bn, [], [], bc)
+  | Inl_script_node(id, e, false) ->
+			((Inl_script_node(id, e, true)), [(Known_expr(to_inner_expr e))], [], bc)
+  | Rem_script_node(id, Http_url(d, uri), false) ->
+			let conn' = (d, uri, (Script_dst(pr, dr))) :: bc in
+			let req = {
+			    req_uri = uri;
+			    req_cookies = get_site_cookies d uri.req_uri_path cookies;
+			    req_body = "";
+			} in
+			let oe = Network_send_event(d, req) in 
+			((Rem_script_node(id, Http_url(d, uri), true)), [(Unknown_expr(dr))], [oe], conn')
+  end
+
+let rec process_node_list_aux (pr: page_ref) (bn: b_nodes) (drs:list node_ref) (bc: b_conn) (cookies: list (cookie_id * string))
+  : Tot (b_nodes * list queued_expr * list output_event * b_conn) =
+  match bn with 
+  | [] -> [], [], [], bc
+  | (dr, n)::tl -> 
+    if mem dr drs then 
+	 (match n with 
+	 | Div_node _ -> let (ln, q, oe, bc') = process_node_list_aux pr tl drs bc cookies in 
+			((dr, n)::ln, q, oe, bc')
+	 | _ -> let (n', q, oe, bc') = process_node_aux pr dr n bc cookies in 
+	       let (ln, q', oe', bc'') = process_node_list_aux pr tl drs bc' cookies in 
+	       ((dr, n')::ln, q@q', oe@oe', bc''))
+    else process_node_list_aux pr tl drs bc cookies
 
   (**/**)
-  // let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (b: browser)
-  // : browser * list queued_expr * list output_event =
-  // if (page_valid pr b && node_valid dr b) then
-  // match b.browser_nodes with 
-  // |[] -> (b,[],[])
-  // | (nr,n)::tl ->
-  // if nr=dr then
-  //   begin match n with
-  //   | Para_node(_, _)
-  //   | Link_node(_, _, _)
-  //   | Textbox_node(_, _, _)
-  //   | Button_node(_, _, _)
-  //   | Inl_script_node(_, _, true)
-  //   | Rem_script_node(_, _, true)
-  //   | Rem_script_node(_, Blank_url, _) ->
-  //       (b, [], [])
-  //   | Inl_script_node(id, e, false) ->
-  //       let b' = node_update dr (Inl_script_node(id, e, true)) b in
-  //       (b', [ Known_expr(to_inner_expr e) ], [])
-  //   | Rem_script_node(id, Http_url(d, uri), false) ->
-  //       let b' = node_update dr (Rem_script_node(id, Http_url(d, uri), true)) b in
-  //       let (b'', oe) = http_send d uri "" (Script_dst(pr, dr)) b' in
-  //       (b'', [ Unknown_expr(dr) ], [ oe ])
-  //   | Div_node(_, drs) ->
-  //       assert (node_list_check drs dr);
-  //       process_node_scripts_list pr drs b
-  //   end
-  // else 
-  // let b'= {b with browser_nodes=tl;} in 
-  // process_node_scripts_aux pr dr b'
-
-  // else (b, [], [])
-
-  // and process_node_scripts_list (pr: page_ref) (drs: list node_ref) (b: browser)
-  // : browser * list queued_expr * list output_event =
-  //   begin match drs with
-  //   | [] -> (b, [], [])
-  //   | dr' :: drs' ->
-  //       let (b', pes1, oes1) = process_node_scripts_aux pr dr' b in
-  //       let (b'', pes2, oes2) = process_node_scripts_list pr drs' b' in
-  //       (b'', pes1 @ pes2, oes1 @ oes2)
-  //   end
-  (**/**)
-
+let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc: b_conn) (cookies: list (cookie_id * string))
+  : Tot (b_nodes * list queued_expr * list output_event * b_conn) (decreases bn) =
+  match bn with 
+  | [] -> (bn, [], [], bc)
+  | (nr,n)::tl ->
+    if nr=dr then
+      begin match n with
+      | Div_node(_, drs) -> process_node_list_aux pr tl drs bc cookies
+      | _ -> 
+	let n', q, oe, bc' = process_node_aux pr dr n bc cookies in
+	((nr, n')::tl, q, oe, bc')
+      end
+    else 
+      let (bn', q, oe, bc') = process_node_scripts_aux pr dr tl bc cookies in 
+      ((nr, n)::bn', q, oe, bc')
+  
   (** [process_node_scripts pr dr b] prepares for execution all of the scripts
       that are found among the descendents of [dr] and have not yet been
       executed.  (Preparing them for execution means putting them in the proper
       queue.)  It also generates network requests for all of the remote
       scripts that have not been requested. *)
 
-
-  // let rec process_node_scripts (pr: page_ref) (dr: node_ref) (b: browser)
-  // : browser * list output_event * list task =
-  // if (node_valid dr b  && page_valid pr b) then
-  //   let (b', qes, oes) = process_node_scripts_aux pr dr b in
-  //   begin match page_win pr b with
-  //   | None ->
-  //       (b', oes, [])
-  //   | Some(wr) ->
-  //       let p = page_assoc_valid pr b' in
-  //       let (exprs, qes') = split_queued_exprs (p.page_script_queue @ qes) in
-  //       let p' = { p with page_script_queue = qes' } in
-  //       let b'' = page_update pr p' b' in
-  //       let task e = {
-  //         task_win = wr;
-  //         task_expr = e;
-  //       } in
-  //       (b'', oes, map task exprs)
-  //   end
-  //   else (b, [], [])
+  let process_node_scripts (pr: page_ref) (dr: node_ref) (b: browser)
+  : browser * list output_event * list task =
+  if (node_valid dr b  && page_valid pr b) then
+    let (bn', qes, oes, bc') = process_node_scripts_aux pr dr b.browser_nodes b.browser_connections b.browser_cookies in
+    let b' = {b with browser_nodes=bn'; browser_connections=bc'} in 
+    begin match page_win pr b with
+    | None ->
+        (b', oes, [])
+    | Some(wr) ->
+        let p = page_assoc_valid pr b' in
+        let (exprs, qes') = split_queued_exprs (p.page_script_queue @ qes) in
+        let p' = { p with page_script_queue = qes' } in
+        let b'' = page_update pr p' b' in
+        let task e = {
+          task_win = wr;
+          task_expr = e;
+        } in
+        (b'', oes, map task exprs)
+    end
+    else (b, [], [])
 
   (**/**)
   let rec textbox_handlers_in_tree (b_nodes':b_nodes) (dr:node_ref)  =
@@ -1481,7 +1527,7 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
   //       (b, e2, [], [])
 
   //   // | Get_cookie(X(R(Url_value(Http_url(d, uri)))), X(R(String_value(ck)))) ->
-  //   //     let cs = get_site_cookies d uri.req_uri_path b in
+  //   //     let cs = get_site_cookies d uri.req_uri_path b.browser_cookies in
   //   //     begin try
   //   //       (b, X(R(String_value(List.assoc ck cs))), [], [])
   //   //     with
