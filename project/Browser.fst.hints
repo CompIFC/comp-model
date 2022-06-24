@@ -1,5 +1,5 @@
 [
-  "_\u0003f³\u0013s/\u00030EÉÒ2ºé6",
+  "\u0019\u0007X}vqùPÕL\u0003\u0011¥BÒ\u0012",
   [
     [
       "Browser.fresh_win_ref",
@@ -2601,13 +2601,20 @@
       1,
       [
         "@MaxIFuel_assumption", "@query",
-        "binder_x_3dddec8ced2db740e4e8aaf70542be7a_4",
+        "binder_x_acab4edb3e032faa192da4d59dd3880a_1",
         "disc_equation_Prims.Cons", "disc_equation_Prims.Nil",
-        "fuel_guarded_inversion_Prims.list",
-        "projection_inverse_BoxBool_proj_0", "subterm_ordering_Prims.Cons"
+        "equation_Browser.node_ref", "equation_Prims.nat",
+        "fuel_guarded_inversion_Prims.list", "primitive_Prims.op_Addition",
+        "primitive_Prims.op_Subtraction",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_FStar.Pervasives.Native.Mktuple2__2",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_702e91382acc37c06f7995418612adaf",
+        "subterm_ordering_Prims.Cons"
       ],
       0,
-      "6e211b46f74bf616fc5cd5d9abc3690e"
+      "a49136f6a1b4e761edd8ed61276ec102"
     ],
     [
       "Browser.build_node_tree",
@@ -2615,26 +2622,38 @@
       2,
       2,
       [
-        "@MaxIFuel_assumption", "@query",
-        "BrowserIO_pretyping_fecdd2dae570423a5bd1dd11a596e367",
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
+        "@fuel_irrelevance_FStar.List.Tot.Base.length.fuel_instrumented",
+        "@query", "BrowserIO_pretyping_fecdd2dae570423a5bd1dd11a596e367",
         "binder_x_35ac7a898ab49ff7820a26dff44c9e2a_1",
         "binder_x_fecdd2dae570423a5bd1dd11a596e367_0",
-        "data_elim_BrowserIO.Divi", "disc_equation_BrowserIO.Button",
-        "disc_equation_BrowserIO.Divi", "disc_equation_BrowserIO.Inl_script",
-        "disc_equation_BrowserIO.Link", "disc_equation_BrowserIO.Para",
-        "disc_equation_BrowserIO.Rem_script",
+        "constructor_distinct_Prims.Cons", "constructor_distinct_Prims.Nil",
+        "data_elim_BrowserIO.Divi", "data_typing_intro_Prims.Nil@tok",
+        "disc_equation_BrowserIO.Button", "disc_equation_BrowserIO.Divi",
+        "disc_equation_BrowserIO.Inl_script", "disc_equation_BrowserIO.Link",
+        "disc_equation_BrowserIO.Para", "disc_equation_BrowserIO.Rem_script",
         "disc_equation_BrowserIO.Textbox", "equation_Browser.node_ref",
-        "equation_Prims.nat", "fuel_guarded_inversion_BrowserIO.doc",
-        "int_inversion", "primitive_Prims.op_Addition",
-        "projection_inverse_BoxBool_proj_0",
+        "equation_Prims.nat",
+        "equation_with_fuel_FStar.List.Tot.Base.length.fuel_instrumented",
+        "fuel_guarded_inversion_BrowserIO.doc", "int_inversion",
+        "kinding_Browser.node@tok",
+        "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "primitive_Prims.op_Addition", "projection_inverse_BoxBool_proj_0",
         "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_Prims.Cons_a",
+        "projection_inverse_Prims.Cons_hd",
+        "projection_inverse_Prims.Cons_tl", "projection_inverse_Prims.Nil_a",
         "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "refinement_interpretation_Tm_refine_a3bf7aa9ab3d26b9e213211a12561cd1",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
         "subterm_ordering_BrowserIO.Divi",
-        "subterm_ordering_FStar.Pervasives.Native.Mktuple2"
+        "subterm_ordering_FStar.Pervasives.Native.Mktuple2",
+        "token_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
+        "typing_FStar.List.Tot.Base.flatten"
       ],
       0,
-      "b10274a709522cad0a0f9e38c96fa75a"
+      "ea718379c407561783002b2a853b0fa9"
     ],
     [
       "Browser.take_ready",
@@ -2647,7 +2666,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "00ddd3b4e7e511abff2f2f6bf9a51cb3"
+      "4639cc2ed3ab95a2c99211fc33766a54"
     ],
     [
       "Browser.drop_ready",
@@ -2660,7 +2679,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "c2af104db90a49d2e77c39ad9bc2d8a7"
+      "547e2d94f59a992e4d01c93d4b377997"
     ],
     [
       "Browser.process_node_aux",
@@ -2703,7 +2722,7 @@
         "typing_tok_BrowserIO.Blank_url@tok"
       ],
       0,
-      "96e0a6e26cc19c564ed73c598c126598"
+      "669f381dc09dba790028dc23bf51ae64"
     ],
     [
       "Browser.process_node_list_aux",
@@ -2761,7 +2780,7 @@
         "typing_tok_BrowserIO.UI_win_opened_event@tok"
       ],
       0,
-      "b3303dc66a1fc3812592b4a13df58978"
+      "bc74696729826a2f86200dd7f4847254"
     ],
     [
       "Browser.process_node_scripts_aux",
@@ -2817,7 +2836,7 @@
         "typing_tok_BrowserIO.UI_win_opened_event@tok"
       ],
       0,
-      "b8c3e3a905047638c718cb601df9bd16"
+      "e04c195f0d345eaf558ae71d9ab175d2"
     ],
     [
       "Browser.process_node_scripts",
@@ -2851,7 +2870,7 @@
         "typing_FStar.List.Tot.Base.assoc"
       ],
       0,
-      "c19138acfd17b371e3ba146f44d86766"
+      "b8d564648bff8c00697acb83adc0594c"
     ],
     [
       "Browser.textbox_handlers_in_tree",
@@ -2895,7 +2914,7 @@
         "typing_Browser.b_node_ref_pred"
       ],
       0,
-      "c34a529cc7d629707b6617051de86390"
+      "ef8327107a5e4c65a030cab80cf8bf82"
     ],
     [
       "Browser.button_handlers_in_tree",
@@ -2939,7 +2958,7 @@
         "typing_Browser.b_node_ref_pred"
       ],
       0,
-      "5e3dc5c0697e025ab078a1f5aef56e3d"
+      "8b2b497e31a5534a2bae0662ce9d362c"
     ],
     [
       "Browser.textbox_handlers_in_pos",
@@ -2975,7 +2994,7 @@
         "typing_FStar.Pervasives.Native.uu___is_Some"
       ],
       0,
-      "14028a8693144c74be48dca3d3ffbf61"
+      "d1a69393e10ab83eb9a7912ba7278d3d"
     ],
     [
       "Browser.button_handlers_in_pos",
@@ -3011,7 +3030,7 @@
         "typing_FStar.Pervasives.Native.uu___is_Some"
       ],
       0,
-      "7b8177b17d066335d911f6d67a1404e8"
+      "db98bd827fdc7f799de2510b959eb41c"
     ],
     [
       "Browser.node_remove",
@@ -3045,7 +3064,7 @@
         "typing_Browser.node_parent"
       ],
       0,
-      "c947476aaaae71c03ef40effb659a8d0"
+      "25056172e176d49cc70dffd590b8e9a9"
     ],
     [
       "Browser.node_descendents",
@@ -3083,7 +3102,7 @@
         "typing_Browser.b_node_ref_pred"
       ],
       0,
-      "8044c2bb8c0b81bdb5542765311ffb82"
+      "c668243db56b7c1c353a7d9458c3fadc"
     ],
     [
       "Browser.insert_in_list",
@@ -3098,7 +3117,7 @@
         "subterm_ordering_Prims.Cons"
       ],
       0,
-      "1a38995368398aa5ddc2919bf49f1de9"
+      "993d5a5d3030138c29afe91787a6e002"
     ],
     [
       "Browser.node_insert",
@@ -3119,7 +3138,7 @@
         "typing_Browser.node_page"
       ],
       0,
-      "7bcbed09992556f4d64ae3f233b19b18"
+      "f3dff6bc432d3b70fbe49ad39dbff065"
     ]
   ]
 ]

@@ -12,8 +12,8 @@ include $(FSTAR_ULIB)/ml/Makefile.include
 browser: out browser.fst
 	$(FSTAR) $(FSTAR_DEFAULT_ARGS) Assumed.fst BrowserIO.fst --odir out --codegen OCaml --extract 'Browser' Browser.fst --record_hints
 
-# reactive: out Reactive.fst
-# 	$(FSTAR) $(FSTAR_DEFAULT_ARGS) --odir out --codegen OCaml --extract 'Reactive' Reactive.fst --record_hints
+# top_level: out 	Top_level.fst
+# 	$(FSTAR) $(FSTAR_DEFAULT_ARGS) --odir out --codegen OCaml --extract 'Top_level' Top_level.fst --record_hints
 
 out:
 	mkdir -p out

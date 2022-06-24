@@ -1,0 +1,78 @@
+[
+  "™PØAœ8j–\bðØ\u0017¿Ž_‡",
+  [
+    [
+      "Top_level.running",
+      1,
+      2,
+      1,
+      [
+        "@query", "assumption_Browser.browser__uu___haseq",
+        "assumption_Browser.task__uu___haseq",
+        "assumption_Prims.list__uu___haseq", "kinding_Browser.task@tok"
+      ],
+      0,
+      "e3d5b19d1ef07d7270662a05f256e7e8"
+    ],
+    [
+      "Top_level.state",
+      1,
+      2,
+      1,
+      [
+        "@query", "assumption_Browser.browser__uu___haseq",
+        "assumption_Top_level.running__uu___haseq",
+        "equation_Top_level.waiting"
+      ],
+      0,
+      "e989b1be9deaa0b11a3b97138cd183a0"
+    ],
+    [
+      "Top_level.__proj__Waiting__item___0",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_4785e46bbc3d74521170d79bde30ad95"
+      ],
+      0,
+      "c7311a04ec2a8f81bc19098573fd84c8"
+    ],
+    [
+      "Top_level.__proj__Running__item___0",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "refinement_interpretation_Tm_refine_71b57c25b1c7497dce2b5aa863afa8ca"
+      ],
+      0,
+      "c7368ac68ead5f567a3036aef56fca91"
+    ],
+    [
+      "Top_level.start",
+      1,
+      2,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@fuel_correspondence_Browser.b_node_pred.fuel_instrumented",
+        "@query", "constructor_distinct_Prims.Nil",
+        "data_typing_intro_Prims.Nil@tok", "equation_Browser.act_ref",
+        "equation_Browser.node_ref", "equation_Prims.nat",
+        "equation_with_fuel_Browser.b_env_pred.fuel_instrumented",
+        "equation_with_fuel_Browser.b_node_pred.fuel_instrumented",
+        "kinding_Browser.act@tok", "kinding_Browser.node@tok",
+        "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_Prims.Nil_a",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
+      ],
+      0,
+      "2b1a79f7ac50fa86bdd77c339aab8ebc"
+    ]
+  ]
+]

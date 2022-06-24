@@ -1070,16 +1070,16 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
       represent [doc] and returns the association list of these nodes with their
       appropriate node data.  It also returns the reference to the root of the
       node tree that was created. *)
-  let rec map' (#a:Type) (#b:Type) (l:list a) (f:(x:a {x << l} -> b)): list b =
+ let rec map' (nr:node_ref) (l:list doc) (f:(x:doc {x << l} -> node_ref -> (r':(node_ref * list (node_ref * node)){let (r, l) = r' in length l >= 1}))) :
+      Tot (l':list (node_ref * (list (node_ref * node)))) (decreases l) =
   match l with
   | [] -> []
-  | h::t -> f h :: (map' t f)
-
+  | h::t -> let (nr', ln) = f h nr in
+	  (nr', ln) :: (map' (nr' + (length ln - 1)) t f)
+    
   let rec build_node_tree (doc: doc)(dr:node_ref)
-  : node_ref * list (node_ref * node) =
-
-  // ---TO DO Recursion error--
-    let dr = dr+1 in  
+  : (l':(node_ref * list (node_ref * node)){let (r, l) = l' in length l >= 1}) =
+    let dr = dr+1 in
     match doc with
     | Para(id, text) ->
         (dr, [ (dr, Para_node(id, text)) ])
@@ -1093,8 +1093,8 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
         (dr, [ (dr, Inl_script_node(id, e, false)) ])
     | Rem_script(id, u) ->
         (dr, [ (dr, Rem_script_node(id, u, false)) ])
-    | Divi(id, subdocs) ->                                 
-        let (drs, nhs) = split (map' subdocs (fun doc -> build_node_tree doc dr)) in
+    | Divi(id, subdocs) ->
+        let (drs, nhs) = split (map' dr subdocs (fun doc -> build_node_tree doc)) in
 	    (dr, (dr, Div_node(id, drs)) :: flatten nhs)
 
 
@@ -1369,7 +1369,6 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
 (** Carries out a single step of executing a script expression. *)
  let rec step_expr (ctx: context) (b: browser) (e: expr inner)
   : browser * expr inner * list output_event* list task =
-
   begin match e with
 
 (* error propagation rules: an expression with an error in a subexression
@@ -1411,7 +1410,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
     | Get_child(X(R(Error(s))), _)
     | Insert_node(X(R(Error(s))), _, _)
     | Remove_node(X(R(Error(s)))) ->
-
+admit();
       (b, X(R(Error(s))), [], [])
 
     | Apply(X(R(_)), X(R(Error(s))))
@@ -1430,7 +1429,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
     | Get_child(X(R(_)), X(R(Error(s))))
     | Insert_node(X(R(_)), X(R(Error(s))), _)
     | Xhr(X(R(_)), X(R(Error(s))), _) ->
-
+admit();
         (b, X(R(Error(s))), [], [])
 
 
@@ -1438,7 +1437,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
     | Xhr(X(R(_)), X(R(_)), X(R(Error(s))))
     | Set_node_attr(X(R(_)), X(R(_)), X(R(Error(s))))
     | Insert_node(X(R(_)), X(R(_)), X(R(Error(s)))) ->
-
+admit();
         (b, X(R(Error(s))), [], [])
 
     (* computational rules *)
@@ -1446,9 +1445,11 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
     | X(R(_)) ->
         (* this should only be reached in the case of a runtime type error *)
         let err = "run-time type error" in
+        admit();
         (b, X(R(Error(err))), [], [])
 
     | X(Scoped_expr(_, X(R(r1)))) ->
+    admit();
         (b, X(R(r1)), [], [])
 
     | X(Scoped_expr(ctx', e1)) ->
@@ -1559,14 +1560,537 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
         (* XXX: perhaps this should be an error, rather than a no-op *)
 
     | Xhr(X(R(Url_value(Http_url(d, uri)))),
-          X(R(String_value(msg))), X(R(Closure(_, _, _, _)))) ->
-        begin if not (win_valid ctx.context_win b) then
-          let err = "window was closed---cannot make AJAX request" in
-          (b, X(R(Error(err))), [], [])
-        else
-          let w = win_assoc_valid ctx.context_win b in
-          let dst = Xhr_dst(w.win_page, Closure(_, _, _, _)) in
+          X(R(String_value(msg))), X(R(Closure c))) ->
+        begin if (win_valid ctx.context_win b) then
+        let w = win_assoc_valid ctx.context_win b in
+          let dst = Xhr_dst(w.win_page, Closure c) in
           let (b', oe) = http_send d uri msg dst b in
           (b', X(R(Null_value)), [ oe ], [])
+
+        else
+          let err = "window was closed---cannot make AJAX request" in
+          (b, X(R(Error(err))), [], [])        
         end
+
+    | Self_win ->
+        (* In some browsers, it may be an error to evaluate "self" if the
+           original window is no longer open.  Here we let "self" evaluate to an
+           invalid window reference, but an error will occur if this reference
+           is ever used, except to test whether it has been closed. *)
+        (b, X(R(Win_value(ctx.context_win))), [], [])
+
+    | Named_win(X(R(String_value(wn)))) ->
+        begin match win_from_win_name wn b with
+        | None -> (b, X(R(Null_value)), [], [])
+        | Some(wr) -> (b, X(R(Win_value(wr))), [], [])
+        end
+
+    | Open_win(X(R(Url_value(u)))) ->
+        let wo = Win_opener(ctx.context_win) in
+        let (wr, b', oes) = open_win No_name u wo b in
+        (b', X(R(Win_value(wr))), oes, [])
+
+    | Open_named_win(X(R(Url_value(u))), X(R(String_value(str)))) ->
+        begin match win_from_win_name str b with
+        | None ->
+            let wo = Win_opener(ctx.context_win) in
+            let (wr, b', oes) = open_win (Str_name(str)) u wo b in
+            (b', X(R(Win_value(wr))), oes, [])
+        | Some(wr) ->
+            let (b', oes) = direct_win wr u b in
+            (b', X(R(Win_value(wr))), oes, [])
+        end
+    | Close_win(X(R(Win_value(wr)))) ->
+        let oes =
+          if win_valid wr b then [ UI_win_closed_event(win_to_user_window wr b) ]
+          else []
+        in
+        (win_remove wr b, X(R(Null_value)), oes, [])
+
+    | Navigate_win(
+          X(R(Win_value(wr))),
+          X(R(Url_value(url)))) ->
+        begin if win_valid wr b then
+          let (b', oes) = direct_win wr (url) b in
+          (b', X(R(Null_value)), oes, [])
+        else
+          let err = "window was closed---cannot set location" in
+          (b, X(R(Error(err))), [], [])
+        end
+    | Is_win_closed(X(R(Win_value(wr)))) ->
+        (b, X(R(Bool_value(not (win_valid wr b)))), [], [])
+
+    | Get_win_opener(X(R(Win_value(wr)))) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err = "window was closed---cannot get opener" in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            begin match w.win_opener with
+            | No_opener -> (b, X(R(Null_value)), [], [])
+            | Win_opener(wr') -> (b, X(R(Win_value(wr))), [], [])
+            end
+        end
+
+    | Get_win_location(X(R(Win_value(wr)))) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err = "window was closed---cannot get location" in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            let u =
+              (page_assoc_valid w.win_page b).page_location
+            in
+            (b, X(R(Url_value(u))), [], [])
+        end
+
+    | Get_win_name(X(R(Win_value(wr)))) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err = "window was closed---cannot get name" in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            begin match w.win_name with
+            | No_name ->
+                (b, X(R(Null_value)), [], [])
+            | Str_name(str) ->
+                (b, X(R(String_value(str))), [], [])
+            end
+        end
+
+    | Set_win_name(X(R(Win_value(wr))), X(R(Null_value))) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err = "window was closed---cannot unset name" in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            let w' = { w with win_name = No_name } in
+            let b' = win_update wr w' b in
+            (b', X(R(Null_value)), [], [])
+        end
+    | Set_win_name(X(R(Win_value(wr))), X(R(String_value(str)))) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err = "window was closed---cannot set name" in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            let w' = { w with win_name = Str_name(str) } in
+            let b' = win_update wr w' b in
+            (b', X(R(Null_value)), [], [])
+        end
+
+    | Get_win_root_node(X(R(Win_value(wr)))) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err = "window was closed---cannot get root node" in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            begin match (page_assoc_valid w.win_page b).page_document with
+            | None ->
+                (b, X(R(Null_value)), [], [])
+            | Some(dr) ->
+                (b, X(R(Node_value(dr))), [], [])
+            end
+        end
+
+    | Set_win_root_node(
+          X(R(Win_value(wr))),
+          X(R(Node_value(dr)))) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err = "window was closed---cannot set root node" in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            let (b', oes1) = node_remove dr b in
+            let p = page_assoc_valid w.win_page b in
+            let p' = { p with page_document = Some(dr) } in
+            let b'' = page_update w.win_page p' b' in
+            let (b''', oes2, ts) = process_node_scripts w.win_page dr b'' in
+            let oes = oes1 @ [ page_update_event w.win_page b''' ] @ oes2 in
+            (b''', X(R(Null_value)), oes, ts)
+        end
+
+    | Get_win_var(X(R(Win_value(wr))), x) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err =
+              Printf.sprintf "window was closed---cannot get variable %s" x
+            in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            let ar = (page_assoc_valid w.win_page b).page_environment in
+            begin match get_var x ar b with
+            | None ->
+                let err =
+                  Printf.sprintf "window variable %s not found" x
+                in
+                (b, X(R(Error(err))), [], [])
+            | Some(r) ->
+                (b, X(R(r)), [], [])
+            end
+        end
+    | Set_win_var(X(R(Win_value(wr))), x, X(R(r2))) ->
+        begin match win_assoc wr b with
+        | None ->
+            let err =
+              Printf.sprintf "window was closed---cannot set variable %s"
+                x
+            in
+            (b, X(R(Error(err))), [], [])
+        | Some(w) ->
+            let ar = (page_assoc_valid w.win_page b).page_environment in
+            match set_var x r2 ar b with
+            | None -> let err= "variable not found" in 
+              (b, X(R(Error(err))), [], [])
+            | Some(v) ->
+              (v, X(R(Null_value)), [], [])
+        end
+
+
+    | New_node(X(R(String_value("para")))) ->
+        let (dr, b') = node_new (Para_node(None, "")) b in
+        (b', X(R(Node_value(dr))), [], [])
+
+    | New_node(X(R(String_value("link")))) ->
+        let (dr, b') = node_new (Link_node(None, Blank_url, "")) b in
+        (b', X(R(Node_value(dr))), [], [])
+
+    | New_node(X(R(String_value("textbox")))) ->
+        let (dr, b') = node_new (Textbox_node(None, "", [])) b in
+        (b', X(R(Node_value(dr))), [], [])
+
+    | New_node(X(R(String_value("button")))) ->
+        let (dr, b') = node_new (Button_node(None, "", [])) b in
+        (b', X(R(Node_value(dr))), [], [])
+
+    | New_node(X(R(String_value("inl_script")))) ->
+        let (dr, b') = node_new (Inl_script_node(None, Null, false)) b in
+        (b', X(R(Node_value(dr))), [], [])
+
+    | New_node(X(R(String_value("rem_script")))) ->
+        let (dr, b') = node_new (Rem_script_node(None, Blank_url, false)) b in
+        (b', X(R(Node_value(dr))), [], [])
+
+    | New_node(X(R(String_value("div")))) ->
+        let (dr, b') = node_new (Div_node(None, [])) b in
+        (b', X(R(Node_value(dr))), [], [])
+
+    | New_node(X(R(String_value(_)))) ->
+        let err = "expected valid node type string" in
+        (b, X(R(Error(err))), [], []) 
+
+    | Get_node_type(X(R(Node_value(dr)))) ->
+        begin match node_assoc_valid dr b with
+        | Para_node(_, _) ->
+            (b, X(R(String_value("para"))), [], [])
+        | Link_node(_, _, _) ->
+            (b, X(R(String_value("link"))), [], [])
+        | Textbox_node(_, _, _) ->
+            (b, X(R(String_value("textbox"))), [], [])
+        | Button_node(_, _, _) ->
+            (b, X(R(String_value("button"))), [], [])
+        | Inl_script_node(_, _, _) ->
+            (b, X(R(String_value("inl_script"))), [], [])
+        | Rem_script_node(_, _, _) ->
+            (b, X(R(String_value("rem_script"))), [], [])
+        | Div_node(_, _) ->
+            (b, X(R(String_value("div"))), [], [])
+        end
+
+    | Get_node_contents(X(R(Node_value(dr)))) ->
+        begin match node_assoc_valid dr b with
+        | Para_node(_, txt) ->
+            (b, X(R(String_value(txt))), [], [])
+        | Link_node(_, _, txt) ->
+            (b, X(R(String_value(txt))), [], [])
+        | Button_node(_, txt, _) ->
+            (b, X(R(String_value(txt))), [], [])
+        | Inl_script_node(_, e, _) ->
+            (b, X(R(Code_value(e))), [], [])
+        | _ ->
+            let err = "node has no contents" in
+            (b, X(R(Error(err))), [], [])
+        end
+
+    | Set_node_attr(
+          X(R(Node_value(dr))),
+          X(R(String_value("value"))),
+          X(R(String_value(s)))) ->
+        begin match node_assoc_valid dr b with
+        | Textbox_node(oeid, _, handlers) ->
+            let b' = node_update dr (Textbox_node(oeid, s, handlers)) b in
+            let oes =
+              begin match node_page dr b' with
+              | None -> []
+              | Some(pr) -> [ page_update_event pr b' ]
+              end
+            in
+            (b', X(R(String_value(s))), oes, [])
+        | _ ->
+            let err = "node has no 'value' attribute" in
+            (b, X(R(Error(err))), [], [])
+        end
+
+    | Get_node_attr(X(R(Node_value(dr))), X(R(String_value("src")))) ->
+        begin match node_assoc_valid dr b with
+        | Rem_script_node(_, u, _) ->
+            (b, X(R(Url_value(u))), [], [])
+        | _ ->
+            let err = "node has no 'src' attribute" in
+            (b, X(R(Error(err))), [], [])
+        end
+
+    | Set_node_attr(
+          X(R(Node_value(dr))),
+          X(R(String_value("src"))),
+          X(R(Url_value(u)))) ->
+        begin match node_assoc_valid dr b with
+        | Rem_script_node(oeid, _, flag) ->
+            let b' = node_update dr (Rem_script_node(oeid, u, flag)) b in
+            (b', X(R(Url_value(u))), [], [])
+        | _ ->
+            let err = "node has no 'src' attribute" in
+            (b, X(R(Error(err))), [], [])
+        end
+
+    | Remove_handlers(X(R(Node_value(dr)))) ->
+        begin match node_assoc_valid dr b with
+        | Textbox_node(id, s, _) ->
+            let dn' = Textbox_node(id, s, []) in
+            let b' = node_update dr dn' b in
+            (b', X(R(Null_value)), [], [])
+        | Button_node(id, s, _) ->
+            let dn' = Button_node(id, s, []) in
+            let b' = node_update dr dn' b in
+            (b', X(R(Null_value)), [], [])
+        | _ ->
+            let err = "expected textbox or button node" in
+            (b, X(R(Error(err))), [], [])
+        end
+
+    | Add_handler(X(R(Node_value(dr))), X(R(Closure c))) ->
+        begin match node_assoc_valid dr b with
+        | Textbox_node(oeid, str, hs) ->
+            let b' = node_update dr (Textbox_node(oeid, str, Closure c :: hs)) b in
+            (b', X(R(Null_value)), [], [])
+        | Button_node(oeid, str, hs) ->
+            let b' = node_update dr (Button_node(oeid, str, Closure c :: hs)) b in
+            (b', X(R(Null_value)), [], [])
+        | _ ->
+            let err = "expected textbox or button node" in
+            (b, X(R(Error(err))), [], [])
+        end
+
+    | Get_parent(X(R(Node_value(dr)))) ->
+        begin match node_parent dr b with
+        | Parent_node(parent) ->
+            (b, X(R(Node_value(parent))), [], [])
+        | _ ->
+            (b, X(R(Null_value)), [], [])
+        end
+
+    | Get_child(X(R(Node_value(dr))), X(R(Int_value(i)))) ->
+        begin match node_assoc_valid dr b with
+        | Div_node(_, drs) ->
+            begin match (nth drs i) with 
+            | None ->
+              (b, X(R(Null_value)), [], [])
+            | Some(v)->
+              (b, X(R(Node_value(v))), [], [])
+            end
+        | _ ->
+            let err = "expected div node" in
+            (b, X(R(Error(err))), [], [])
+        end
+
+    | Insert_node(
+          X(R(Node_value(dr1))),
+          X(R(Node_value(dr2))),
+          X(R(Int_value(k)))) ->
+        let (b', oes, ts) = node_insert dr1 dr2 k b in
+        begin match (b', oes, ts) with 
+        | (b, [], []) ->
+            let err = "(parent node not a div node or a descendant of child) 
+            or (div node has too few children) " in
+            (b, X(R(Error(err))), [], [])
+        | _ -> (b', X(R(Null_value)), oes, ts)
+        end
+
+    | Remove_node(X(R(Node_value(dr)))) ->
+        let (b', oes) = node_remove dr b in
+        (b', X(R(Null_value)), oes, [])
+    
+    (* congurence rules: evaluation in subexpressions *)
+
+    | Eval(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b, Eval(e1'), oes, ts)
+    | Apply(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Apply(X(R(e1)), e2'), oes, ts)
+    | Apply(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Apply(e1', e2), oes, ts)
+    | Prim1(prim, e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Prim1(prim, e1'), oes, ts)
+    | Prim2(prim, X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Prim2(prim, X(R(e1)), e2'), oes, ts)
+    | Prim2(prim, e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Prim2(prim, e1', e2), oes, ts)
+    | Alert(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Alert(e1'), oes, ts)
+    | If(e1, e2, e3) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', If(e1', e2, e3), oes, ts)
+    | Set_var(x, e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Set_var(x, e1'), oes, ts)
+    | Seq(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Seq(e1', e2), oes, ts)
+    | Get_cookie(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Get_cookie(X(R(e1)), e2'), oes, ts)
+    | Get_cookie(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_cookie(e1', e2), oes, ts)
+    | Set_cookie(X(R(e1)), X(R(e2)), e3) ->
+        let (b', e3', oes, ts) = step_expr ctx b e3 in
+        (b', Set_cookie(X(R(e1)), X(R(e2)), e3'), oes, ts)
+    | Set_cookie(X(R(e1)), e2, e3) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Set_cookie(X(R(e1)), e2', e3), oes, ts)
+    | Set_cookie(e1, e2, e3) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Set_cookie(e1', e2, e3), oes, ts)
+    | Xhr(X(R(e1)), X(R(e2)), e3) ->
+        let (b', e3', oes, ts) = step_expr ctx b e3 in
+        (b', Xhr(X(R(e1)), X(R(e2)), e3'), oes, ts)
+    | Xhr(X(R(e1)), e2, e3) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Xhr(X(R(e1)), e2', e3), oes, ts)
+    | Xhr(e1, e2, e3) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Xhr(e1', e2, e3), oes, ts)
+    | Named_win(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Named_win(e1'), oes, ts)
+    | Open_win(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Open_win(e1'), oes, ts)
+    | Open_named_win(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Open_named_win(X(R(e1)), e2'), oes, ts)
+    | Open_named_win(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Open_named_win(e1', e2), oes, ts)
+    | Close_win(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Close_win(e1'), oes, ts)
+    | Navigate_win(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Navigate_win(X(R(e1)), e2'), oes, ts)
+    | Navigate_win(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Navigate_win(e1', e2), oes, ts)
+    | Is_win_closed(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Is_win_closed(e1'), oes, ts)
+    | Get_win_opener(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_win_opener(e1'), oes, ts)
+    | Get_win_location(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_win_location(e1'), oes, ts)
+    | Get_win_name(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_win_name(e1'), oes, ts)
+    | Set_win_name(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Set_win_name(X(R(e1)), e2'), oes, ts)
+    | Set_win_name(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Set_win_name(e1', e2), oes, ts)
+    | Get_win_root_node(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_win_root_node(e1'), oes, ts)
+    | Set_win_root_node(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Set_win_root_node(X(R(e1)), e2'), oes, ts)
+    | Set_win_root_node(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Set_win_root_node(e1', e2), oes, ts)
+    | Get_win_var(e1, x) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_win_var(e1', x), oes, ts)
+    | Set_win_var(X(R(e1)), x, e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Set_win_var(X(R(e1)), x, e2'), oes, ts)
+    | Set_win_var(e1, x, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Set_win_var(e1', x, e2), oes, ts)
+    | New_node(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', New_node(e1'), oes, ts)
+    | Get_node_type(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_node_type(e1'), oes, ts)
+    | Get_node_contents(e1) -> 
+       let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_node_contents(e1'), oes, ts)
+    | Set_node_contents(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Set_node_contents(X(R(e1)), e2'), oes, ts)
+    | Set_node_contents(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Set_node_contents(e1', e2), oes, ts)
+    | Get_node_attr(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Get_node_attr(X(R(e1)), e2'), oes, ts)
+    | Get_node_attr(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_node_attr(e1', e2), oes, ts)
+    | Set_node_attr(X(R(e1)), X(R(e2)), e3) ->
+        let (b', e3', oes, ts) = step_expr ctx b e3 in
+        (b', Set_node_attr(X(R(e1)), X(R(e2)), e3'), oes, ts)
+    | Set_node_attr(X(R(e1)), e2, e3) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Set_node_attr(X(R(e1)), e2', e3), oes, ts)
+    | Set_node_attr(e1, e2, e3) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Set_node_attr(e1', e2, e3), oes, ts)
+    | Remove_handlers(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Remove_handlers(e1'), oes, ts)
+    | Add_handler(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Add_handler(X(R(e1)), e2'), oes, ts)
+    | Add_handler(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Add_handler(e1', e2), oes, ts)
+    | Get_child(X(R(e1)), e2) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Get_child(X(R(e1)), e2'), oes, ts)
+    | Get_parent(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_parent(e1'), oes, ts)
+    | Get_child(e1, e2) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Get_child(e1', e2), oes, ts)
+    | Insert_node(X(R(e1)), X(R(e2)), e3) ->
+        let (b', e3', oes, ts) = step_expr ctx b e3 in
+        (b', Insert_node(X(R(e1)), X(R(e2)), e3'), oes, ts)
+    | Insert_node(X(R(e1)), e2, e3) ->
+        let (b', e2', oes, ts) = step_expr ctx b e2 in
+        (b', Insert_node(X(R(e1)), e2', e3), oes, ts)
+    | Insert_node(e1, e2, e3) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Insert_node(e1', e2, e3), oes, ts)
+    | Remove_node(e1) ->
+        let (b', e1', oes, ts) = step_expr ctx b e1 in
+        (b', Remove_node(e1'), oes, ts)
 end
