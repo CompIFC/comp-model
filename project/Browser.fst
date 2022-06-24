@@ -5,6 +5,7 @@ open BrowserIO
 open Assumed
 open FStar.List.Tot.Base
 
+
       
   
 (* --internal browser structures --*)
@@ -89,29 +90,20 @@ type inner=
 (* A type for the results of evaluating script expressions. *)
 
 and value=
-| Closure: context -> var -> list var -> expr inner->value
-(** [Closure(cxt, param, locals, body)] is a function closure, where
+    | Null_value
+    | Bool_value of bool
+    | Int_value of int
+    | String_value of string
+    | Url_value of url
+    | Type_value of typ
+    | Code_value of expr unit
+    | Win_value of win_ref
+    | Node_value of node_ref
+    | Closure of context * var * list var  *  expr inner
+      (** [Closure(cxt, param, locals, body)] is a function closure, where
           [locals] are the additional variable names that will be used in the
           body. *)
-| Win_value: win_ref -> value
-
-| Node_value: node_ref -> value
-
-| Null_value: value
-
-| Bool_value: bool -> value
-
-| Int_value: int -> value
-
-| String_value: string -> value
-
-| Url_value: url -> value
-
-| Type_value: typ -> value
-
-| Code_value: expr False -> value
-
-| Error: string -> value
+    | Error of string
       (** An error result (with an informative message). *)
 
 
@@ -131,7 +123,7 @@ let prim1 (prim:string) (r: value)
     | ("typeof", Code_value(_)) -> Type_value(Code_type)
     | ("typeof", Win_value(_)) -> Type_value(Window_type)
     | ("typeof", Node_value(_)) -> Type_value(Node_type)
-    | ("typeof", Closure _ _ _ _) -> Type_value(Function_type)
+    | ("typeof", Closure (_)) -> Type_value(Function_type)
     | ("StringToInt", String_value(s)) -> Int_value(int_of_string(s)) 
   
     | ("IntToString", Int_value(i)) -> String_value(string_of_int(i))    
@@ -896,7 +888,7 @@ let rec list_without_div_nodes_lemma (b: (list (node_ref * node))) : Lemma (list
 
 // (**/**)
 let rec get_nodes_as_list' (b: b_nodes) (dr: node_ref) 
-  : b':list (node_ref * n:node{match n with | Div_node _ -> False | _ -> True}) =
+  : list (node_ref * n:node{match n with | Div_node _ -> False | _ -> True}) =
   match b with 
   | [] -> []
   | (nr, nd)::tl ->
@@ -1078,13 +1070,16 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
       represent [doc] and returns the association list of these nodes with their
       appropriate node data.  It also returns the reference to the root of the
       node tree that was created. *)
+  let rec map' (#a:Type) (#b:Type) (l:list a) (f:(x:a {x << l} -> b)): list b =
+  match l with
+  | [] -> []
+  | h::t -> f h :: (map' t f)
 
-  let rec build_node_tree (doc: doc)(b: browser)
+  let rec build_node_tree (doc: doc)(dr:node_ref)
   : node_ref * list (node_ref * node) =
 
   // ---TO DO Recursion error--
-  let n_ref = if length b.browser_nodes >= 1 then (fst (last b.browser_nodes)) else 0 in
-    let dr = fresh_node_ref n_ref in  
+    let dr = dr+1 in  
     match doc with
     | Para(id, text) ->
         (dr, [ (dr, Para_node(id, text)) ])
@@ -1098,9 +1093,9 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
         (dr, [ (dr, Inl_script_node(id, e, false)) ])
     | Rem_script(id, u) ->
         (dr, [ (dr, Rem_script_node(id, u, false)) ])
-    | Divi(id, subdocs) ->                                 // --TO DO --
-        // let (drs, nhs) = split (map ( fun doc -> build_node_tree doc b) subdocs) in
-        (dr, [(dr, Div_node(id, []))])   //(dr, Div_node(id, drs)) :: flatten nhs)
+    | Divi(id, subdocs) ->                                 
+        let (drs, nhs) = split (map' subdocs (fun doc -> build_node_tree doc dr)) in
+	    (dr, (dr, Div_node(id, drs)) :: flatten nhs)
 
 
   (** [split_queued_exprs qes] returns the prefix of [qes] that are known
@@ -1332,26 +1327,30 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
 
   (** [insert_node parent child pos b] inserts [child] into the children
       of [parent] at position [pos]. *)
-  // let node_insert (parent: node_ref) (child: node_ref) (posi: int) (b: browser)
-  // : b * list output_event list * list task =
-  //   assert (node_valid parent b);
-  //   assert (node_valid child b);
-  //   if List.mem parent (node_descendents true parent b) then
-  //     failwith "node_insert";
-  //   let (b', oes1) = node_remove child b in
-  //   begin match node_assoc_valid parent b' with
-  //   | Div_node(id, children) ->
-  //       let children' = insert_in_list child children pos in
-  //       let dn' = Div_node(id, children') in
-  //       let b'' = node_update parent dn' b' in
-  //       begin match node_page parent b'' with
-  //       | None -> (b'', oes1, [])
-  //       | Some(pr) ->
-  //           let (b''', oes2, ts) = process_node_scripts pr child b'' in
-  //           (b''', oes1 @ [ page_update_event pr b''' ] @ oes2, ts)
-  //       end
-  //   | _ -> failwith "node_insert"
-  //   end 
+  let node_insert (parent: node_ref) (child: node_ref) (posi: int) (b: browser)
+  : browser * list output_event * list task =
+    if (node_valid parent b && node_valid child b) then
+    // if mem parent (node_descendents b.browser_noes parent ) then
+    //   failwith "node_insert";
+    let (b', oes1) = node_remove child b in
+    if (node_valid parent b') then
+    begin match node_assoc_valid parent b' with
+    | Div_node(id, children) ->
+        let children' = insert_in_list child children posi in
+        let dn' = Div_node(id, children') in
+        if (b_node_ref_pred parent dn') then
+        let b'' = node_update parent dn' b' in
+        begin match node_page parent b'' with
+        | None -> (b'', oes1, [])
+        | Some(pr) ->
+            let (b''', oes2, ts) = process_node_scripts pr child b'' in
+            (b''', oes1 @ [ page_update_event pr b''' ] @ oes2, ts)
+        end
+        else (b,[],[])
+    | _ -> (b,[],[])
+    end 
+    else (b,[],[])
+    else (b,[],[])
 
 //   (** {3 Executing scripts} *)
 
@@ -1365,840 +1364,209 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
     end
   (**/**)
 
-  (** Carries out a single step of executing a script expression. *)
-  // let rec step_expr (ctx: context) (b: browser) (e: expr inner)
-  // : browser * expr inner * list output_event * list task =
-  //   let step = step_expr ctx in
-  //   begin match e with
 
-  //   (* error propagation rules: an expression with an error in a subexression
-  //    * must step to an error *)
 
-  //   | Eval(X(R(Error(s))))
-  //   | Apply (X(R(Error(s))), _ )
-  //   | Prim1(_, X(R(Error(s))))
-  //   | Prim2(_, X(R(Error(s))), _)
-  //   | Alert(X(R(Error(s))))
-  //   | If(X(R(Error(s))), _, _)
-  //   | Set_var(_, X(R(Error(s))))
-  //   | Seq(X(R(Error(s))), _)
-  //   | Get_cookie(X(R(Error(s))), _)
-  //   | Set_cookie(X(R(Error(s))), _, _)
-  //   | Xhr(X(R(Error(s))), _, _)
-  //   | Named_win(X(R(Error(s))))
-  //   | Open_win(X(R(Error(s))))
-  //   | Open_named_win(X(R(Error(s))), _)
-  //   | Close_win(X(R(Error(s))))
-  //   | Navigate_win(X(R(Error(s))), _)
-  //   | Is_win_closed(X(R(Error(s))))
-  //   | Get_win_opener(X(R(Error(s))))
-  //   | Get_win_location(X(R(Error(s))))
-  //   | Get_win_name(X(R(Error(s))))
-  //   | Set_win_name(X(R(Error(s))), _)
-  //   | Get_win_root_node(X(R(Error(s))))
-  //   | Set_win_root_node(X(R(Error(s))), _)
-  //   | Get_win_var(X(R(Error(s))), _)
-  //   | Set_win_var(X(R(Error(s))), _, _)
-  //   | New_node(X(R(Error(s))))
-  //   | Get_node_type(X(R(Error(s))))
-  //   | Get_node_contents(X(R(Error(s))))
-  //   | Set_node_contents(X(R(Error(s))), _)
-  //   | Get_node_attr(X(R(Error(s))), _)
-  //   | Set_node_attr(X(R(Error(s))), _, _)
-  //   | Remove_handlers(X(R(Error(s))))
-  //   | Add_handler(X(R(Error(s))), _)
-  //   | Get_parent(X(R(Error(s))))
-  //   | Get_child(X(R(Error(s))), _)
-  //   | Insert_node(X(R(Error(s))), _, _)
-  //   | Remove_node(X(R(Error(s)))) ->
+(** Carries out a single step of executing a script expression. *)
+ let rec step_expr (ctx: context) (b: browser) (e: expr inner)
+  : browser * expr inner * list output_event* list task =
 
-  //     (b, X(R(Error(s))), [], [])
+  begin match e with
 
-  //   | Apply(X(R(_)), X(R(Error(s))))
-  //   | Prim2(_, X(R(_)), X(R(Error(s))))
-  //   | Get_cookie(X(R(_)), X(R(Error(s))))
-  //   | Set_cookie(X(R(_)), X(R(Error(s))), _)
-  //   | Open_named_win(X(R(_)), X(R(Error(s))))
-  //   | Navigate_win(X(R(_)), X(R(Error(s))))
-  //   | Set_node_contents(X(R(_)), X(R(Error(s))))
-  //   | Get_node_attr(X(R(_)), X(R(Error(s))))
-  //   | Set_node_attr(X(R(_)), X(R(Error(s))), _)
-  //   | Set_win_name(X(R(_)), X(R(Error(s))))
-  //   | Set_win_root_node(X(R(_)), X(R(Error(s))))
-  //   | Set_win_var(X(R(_)), _, X(R(Error(s))))
-  //   | Add_handler(X(R(_)), X(R(Error(s))))
-  //   | Get_child(X(R(_)), X(R(Error(s))))
-  //   | Insert_node(X(R(_)), X(R(Error(s))), _)
-  //   | Xhr(X(R(_)), X(R(Error(s))), _) ->
+(* error propagation rules: an expression with an error in a subexression
+     * must step to an error *)
+    | Eval(X(R(Error(s))))
+    | Apply(X(R(Error(s))), _)
+    | Prim1(_, X(R(Error(s))))
+    | Prim2(_, X(R(Error(s))), _)
+    | Alert(X(R(Error(s))))
+    | If(X(R(Error(s))), _, _)
+    | Set_var(_, X(R(Error(s))))
+    | Seq(X(R(Error(s))), _)
+    | Get_cookie(X(R(Error(s))), _)
+    | Set_cookie(X(R(Error(s))), _, _)
+    | Xhr(X(R(Error(s))), _, _)
+    | Named_win(X(R(Error(s))))
+    | Open_win(X(R(Error(s))))
+    | Open_named_win(X(R(Error(s))), _)
+    | Close_win(X(R(Error(s))))
+    | Navigate_win(X(R(Error(s))), _)
+    | Is_win_closed(X(R(Error(s))))
+    | Get_win_opener(X(R(Error(s))))
+    | Get_win_location(X(R(Error(s))))
+    | Get_win_name(X(R(Error(s))))
+    | Set_win_name(X(R(Error(s))), _)
+    | Get_win_root_node(X(R(Error(s))))
+    | Set_win_root_node(X(R(Error(s))), _)
+    | Get_win_var(X(R(Error(s))), _)
+    | Set_win_var(X(R(Error(s))), _, _)
+    | New_node(X(R(Error(s))))
+    | Get_node_type(X(R(Error(s))))
+    | Get_node_contents(X(R(Error(s))))
+    | Set_node_contents(X(R(Error(s))), _)
+    | Get_node_attr(X(R(Error(s))), _)
+    | Set_node_attr(X(R(Error(s))), _, _)
+    | Remove_handlers(X(R(Error(s))))
+    | Add_handler(X(R(Error(s))), _)
+    | Get_parent(X(R(Error(s))))
+    | Get_child(X(R(Error(s))), _)
+    | Insert_node(X(R(Error(s))), _, _)
+    | Remove_node(X(R(Error(s)))) ->
 
-  //       (b, X(R(Error(s))), [], [])
+      (b, X(R(Error(s))), [], [])
 
-  //   | Set_cookie(X(R(_)), X(R(_)), X(R(Error(s))))
-  //   | Xhr(X(R(_)), X(R(_)), X(R(Error(s))))
-  //   | Set_node_attr(X(R(_)), X(R(_)), X(R(Error(s))))
-  //   | Insert_node(X(R(_)), X(R(_)), X(R(Error(s)))) ->
+    | Apply(X(R(_)), X(R(Error(s))))
+    | Prim2(_, X(R(_)), X(R(Error(s))))
+    | Get_cookie(X(R(_)), X(R(Error(s))))
+    | Set_cookie(X(R(_)), X(R(Error(s))), _)
+    | Open_named_win(X(R(_)), X(R(Error(s))))
+    | Navigate_win(X(R(_)), X(R(Error(s))))
+    | Set_node_contents(X(R(_)), X(R(Error(s))))
+    | Get_node_attr(X(R(_)), X(R(Error(s))))
+    | Set_node_attr(X(R(_)), X(R(Error(s))), _)
+    | Set_win_name(X(R(_)), X(R(Error(s))))
+    | Set_win_root_node(X(R(_)), X(R(Error(s))))
+    | Set_win_var(X(R(_)), _, X(R(Error(s))))
+    | Add_handler(X(R(_)), X(R(Error(s))))
+    | Get_child(X(R(_)), X(R(Error(s))))
+    | Insert_node(X(R(_)), X(R(Error(s))), _)
+    | Xhr(X(R(_)), X(R(Error(s))), _) ->
 
-  //       (b, X(R(Error(s))), [], [])
+        (b, X(R(Error(s))), [], [])
 
-  //   (* computational rules *)
 
-  //   | X(R(_)) ->
-  //       (* this should only be reached in the case of a runtime type error *)
-  //       let err = "run-time type error" in
-  //       (b, X(R(Error(err))), [], [])
+    | Set_cookie(X(R(_)), X(R(_)), X(R(Error(s))))
+    | Xhr(X(R(_)), X(R(_)), X(R(Error(s))))
+    | Set_node_attr(X(R(_)), X(R(_)), X(R(Error(s))))
+    | Insert_node(X(R(_)), X(R(_)), X(R(Error(s)))) ->
 
-  //   | X(Scoped_expr(_, X(R(r1)))) ->
-  //       (b, X(R(r1)), [], [])
-  //   | X(Scoped_expr(ctx', e1)) ->
-  //       let (b', e1', oes, ts) = step_expr ctx' b e1 in
-  //       (b', X(Scoped_expr(ctx', e1')), oes, ts)
+        (b, X(R(Error(s))), [], [])
 
-  //   | Null ->
-  //       (b, X(R(Null_value)), [], [])
-  //   | Bool(bl) ->
-  //       (b, X(R(Bool_value(bl))), [], [])
-  //   | Int(n) ->
-  //       (b, X(R(Int_value(n))), [], [])
-  //   | String(s) ->
-  //       (b, X(R(String_value(s))), [], [])
-  //   | Url(u) ->
-  //       (b, X(R(Url_value(u))), [], [])
-  //   | Types(t) ->
-  //       (b, X(R(Type_value(t))), [], [])
+    (* computational rules *)
 
-  //   | Code(e) ->
-  //       (b, X(R(Code_value(e))), [], [])
-  //   | Eval(X(R(Code_value(e1)))) ->
-  //       (b, to_inner_expr e1, [], [])
+    | X(R(_)) ->
+        (* this should only be reached in the case of a runtime type error *)
+        let err = "run-time type error" in
+        (b, X(R(Error(err))), [], [])
 
-  //   | Var(x) ->
-  //       begin match get_var x ctx.context_act b with
-  //       | None ->
-  //           let err = Printf.sprintf "variable %S not found" x.var_name in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(r) ->
-  //           (b, X(R(r)), [], [])
-  //       end
+    | X(Scoped_expr(_, X(R(r1)))) ->
+        (b, X(R(r1)), [], [])
 
-  //   | Function(x, locals, e1) ->
-  //       (b, X(R(Closure(ctx, x, locals, e1))), [], [])
-  //   | Apply(X(R(Closure(ctx1, x, locals, e1))), X(R(r2))) ->
-  //       let bot_null x = (x, Null_value) in
-  //       let act = {
-  //         act_parent = Some(ctx1.context_act);
-  //         act_vars = (x, r2) :: List.map bot_null locals;
-  //       } in
-  //       let (ar', b') = act_new act b in
-  //       let ctx2 = { ctx1 with context_act = ar' } in
-  //       (b', X(Scoped_expr(ctx2, e1)), [], [])
+    | X(Scoped_expr(ctx', e1)) ->
+        let (b', e1', oes, ts) = step_expr ctx' b e1 in
+        (b', X(Scoped_expr(ctx', e1')), oes, ts)
 
-  //   | Prim1(prim, X(R(r))) ->
-  //       (b, X(R(prim1 prim r)), [], [])
-  //   | Prim2(prim, X(R(r1)), X(R(r2))) ->
-  //       (b, X(R(prim2 prim r1 r2)), [], [])
-  //   | Alert(X(R(Null_value))) ->
-  //       (b, X(R(Null_value)), [ UI_alert("null") ], [])
-  //   | Alert(X(R(Bool_value(bl)))) ->
-  //       (b, X(R(Null_value)), [ UI_alert(Printf.sprintf "%B" bl) ], [])
-  //   | Alert(X(R(Int_value(n)))) ->
-  //       (b, X(R(Null_value)), [ UI_alert(Printf.sprintf "%N" n) ], [])
-  //   | Alert(X(R(String_value(s)))) ->
-  //       (b, X(R(Null_value)), [ UI_alert(s) ], [])
-  //   | Alert(X(R(Url_value(_)))) ->
-  //       (b, X(R(Null_value)), [ UI_alert("<URL>") ], [])
-  //   | Alert(X(R(Code_value(_)))) ->
-  //       (b, X(R(Null_value)), [ UI_alert("<code>") ], [])
-  //   | Alert(X(R(Win_value(_)))) ->
-  //       (b, X(R(Null_value)), [ UI_alert("<window>") ], [])
-  //   | Alert(X(R(Node_value(_)))) ->
-  //       (b, X(R(Null_value)), [ UI_alert("<node>") ], [])
-  //   | Alert(X(R(Closure(_, _, _, _)))) ->
-  //       (b, X(R(Null_value)), [ UI_alert("<function>") ], [])
+    | Null ->
+        (b, X(R(Null_value)), [], [])
+    | Bool(bl) ->
+        (b, X(R(Bool_value(bl))), [], [])
+    | Int(n) ->
+        (b, X(R(Int_value(n))), [], [])
+    | String(s) ->
+        (b, X(R(String_value(s))), [], [])
+    | Url(u) ->
+        (b, X(R(Url_value(u))), [], [])
+    | Types(t) ->
+        (b, X(R(Type_value(t))), [], [])
 
-  //   | Set_var(x, X(R(r1))) ->
-  //       (set_var x r1 ctx.context_act b, X(R(r1)), [], [])
-  //   | If(X(R(Bool_value(true))), e2, e3) ->
-  //       (b, e2, [], [])
-  //   | If(X(R(Bool_value(false))), e2, e3) ->
-  //       (b, e3, [], [])
-  //   | While(e1, e2) ->
-  //       (b, If(e1, Seq(e2, While(e1, e2)), Null), [], [])
-  //   | Seq(X(R(_)), e2) ->
-  //       (b, e2, [], [])
+    | Code(e) ->
+        (b, X(R(Code_value(e))), [], [])
+    | Eval(X(R(Code_value(e1)))) ->
+        (b, to_inner_expr e1, [], [])
 
-  //   // | Get_cookie(X(R(Url_value(Http_url(d, uri)))), X(R(String_value(ck)))) ->
-  //   //     let cs = get_site_cookies d uri.req_uri_path b.browser_cookies in
-  //   //     begin try
-  //   //       (b, X(R(String_value(List.assoc ck cs))), [], [])
-  //   //     with
-  //   //     | Not_found -> (b, X(R(Null_value)), [], [])
-  //   //     end
-  //   | Set_cookie(
-  //         X(R(Url_value(Http_url(d, uri)))),
-  //         X(R(String_value(ck))),
-  //         X(R(Null_value))) ->
-  //       let b' = del_site_cookie d uri.req_uri_path ck b in
-  //       (b', X(R(Null_value)), [], [])
-  //   | Set_cookie(
-  //         X(R(Url_value(Http_url(d, uri)))),
-  //         X(R(String_value(ck))),
-  //         X(R(String_value(cv)))) ->
-  //       let b' = set_site_cookie d uri.req_uri_path (ck, cv) b in
-  //       (b', X(R(Null_value)), [], [])
+    | Var(x) ->
+        begin match get_var x ctx.context_act b with
+        | None ->
+            let err = Printf.sprintf "variable %s not found" x in
+            (b, X(R(Error(err))), [], [])
+        | Some(r) ->
+            (b, X(R(r)), [], [])
+        end
 
-  //   | Xhr(X(R(Url_value(Blank_url))), X(R(_)), X(R(_))) ->
-  //       (b, X(R(Null_value)), [], [])
-  //       (* XXX: perhaps this should be an error, rather than a no-op *)
+    | Function(x, locals, e1) ->
+        (b, X(R(Closure(ctx, x, locals, e1))), [], [])
 
-  //   | Xhr(X(R(Url_value(Http_url(d, uri)))),
-  //         X(R(String_value(msg))), X(R(Closure(_, _, _, _)))) ->
-  //       begin if not (win_valid ctx.context_win b) then
-  //         let err = "window was closed---cannot make AJAX request" in
-  //         (b, X(R(Error(err))), [], [])
-  //       else
-  //         let w = win_assoc_valid ctx.context_win b in
-  //         let dst = Xhr_dst(w.win_page, Closure(_, _, _, _)) in
-  //         let (b', oe) = http_send d uri msg dst b in
-  //         (b', X(R(Null_value)), [ oe ], [])
-  //       end
+    | Apply(X(R(Closure(ctx1, x, locals, e1))), X(R(r2))) ->
+        let bot_null x = (x, Null_value) in
+        let act = {
+          act_parent = Some(ctx1.context_act);
+          act_vars = (x, r2) :: map bot_null locals;
+        } in
+        let (ar', b') = act_new act b in
+        let ctx2 = { ctx1 with context_act = ar' } in
+        (b', X(Scoped_expr(ctx2, e1)), [], [])
 
-  //   | Self_win ->
-  //       (* In some browsers, it may be an error to evaluate "self" if the
-  //          original window is no longer open.  Here we let "self" evaluate to an
-  //          invalid window reference, but an error will occur if this reference
-  //          is ever used, except to test whether it has been closed. *)
-  //       (b, X(R(Win_value(ctx.context_win))), [], [])
+    | Prim1(prim, X(R(r))) ->
+        (b, X(R(prim1 prim r)), [], [])
+    | Prim2(prim, X(R(r1)), X(R(r2))) ->
+        (b, X(R(prim2 prim r1 r2)), [], [])
+    | Alert(X(R(Null_value))) ->
+        (b, X(R(Null_value)), [ UI_alert("null") ], [])
+    | Alert(X(R(Bool_value(bl)))) ->
+        (b, X(R(Null_value)), [ UI_alert(Printf.sprintf "%b" bl) ], [])
+    | Alert(X(R(Int_value(n)))) ->
+        (b, X(R(Null_value)), [ UI_alert(Printf.sprintf "%d" n) ], [])
+    | Alert(X(R(String_value(s)))) ->
+        (b, X(R(Null_value)), [ UI_alert(s) ], [])
+    | Alert(X(R(Url_value(_)))) ->
+        (b, X(R(Null_value)), [ UI_alert("<URL>") ], [])
+    | Alert(X(R(Code_value(_)))) ->
+        (b, X(R(Null_value)), [ UI_alert("<code>") ], [])
+    | Alert(X(R(Win_value(_)))) ->
+        (b, X(R(Null_value)), [ UI_alert("<window>") ], [])
+    | Alert(X(R(Node_value(_)))) ->
+        (b, X(R(Null_value)), [ UI_alert("<node>") ], [])
+    | Alert(X(R(Closure(_, _, _, _)))) ->
+        (b, X(R(Null_value)), [ UI_alert("<function>") ], [])
 
-  //   | Named_win(X(R(String_value(wn)))) ->
-  //       begin match win_from_win_name wn b with
-  //       | None -> (b, X(R(Null_value)), [], [])
-  //       | Some(wr) -> (b, X(R(Win_value(wr))), [], [])
-  //       end
+    | Set_var(x, X(R(r1))) ->
+      let v=set_var x r1 ctx.context_act b in
+        begin match v with
+        | None -> (b, X(R(Null_value)), [ UI_alert("Error in set_var, context activation recors not valid") ], [])
+        | Some (v) -> (v, X(R(r1)), [], [])
+        end
+    | If(X(R(Bool_value(true))), e2, e3) ->
+        (b, e2, [], [])
+    | If(X(R(Bool_value(false))), e2, e3) ->
+        (b, e3, [], [])
+    | While(e1, e2) ->
+        (b, If(e1, Seq(e2, While(e1, e2)), Null), [], [])
+    | Seq(X(R(_)), e2) ->
+        (b, e2, [], [])
 
-  //   | Open_win(X(R(Url_value(u)))) ->
-  //       let wo = Win_opener(ctx.context_win) in
-  //       let (wr, b', oes) = open_win No_name u wo b in
-  //       (b', X(R(Win_value(wr))), oes, [])
-  //   | Open_named_win(X(R(Url_value(u))), X(R(String_value(str)))) ->
-  //       begin match win_from_win_name str b with
-  //       | None ->
-  //           let wo = Win_opener(ctx.context_win) in
-  //           let (wr, b', oes) = open_win (Str_name(str)) u wo b in
-  //           (b', X(R(Win_value(wr))), oes, [])
-  //       | Some(wr) ->
-  //           let (b', oes) = direct_win wr u b in
-  //           (b', X(R(Win_value(wr))), oes, [])
-  //       end
-  //   | Close_win(X(R(Win_value(wr)))) ->
-  //       let oes =
-  //         if win_valid wr b then [ UI_win_closed_event(win_to_user_window wr b) ]
-  //         else []
-  //       in
-  //       (win_remove wr b, X(R(Null_value)), oes, [])
-  //   | Navigate_win(
-  //         X(R(Win_value(wr))),
-  //         X(R(Url_value(url)))) ->
-  //       begin if win_valid wr b then
-  //         let (b', oes) = direct_win wr (url) b in
-  //         (b', X(R(Null_value)), oes, [])
-  //       else
-  //         let err = "window was closed---cannot set location" in
-  //         (b, X(R(Error(err))), [], [])
-  //       end
+    | Get_cookie(X(R(Url_value(Http_url(d, uri)))), X(R(String_value(ck)))) ->
+        let cs = get_site_cookies d uri.req_uri_path b.browser_cookies in
+        begin match assoc ck cs with
+          
+        | None -> (b, X(R(Null_value)), [], [])
+        | Some(v) -> (b, X(R(String_value(v))), [], [])
+        end
 
-  //   | Is_win_closed(X(R(Win_value(wr)))) ->
-  //       (b, X(R(Bool_value(not (win_valid wr b)))), [], [])
-  //   | Get_win_opener(X(R(Win_value(wr)))) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err = "window was closed---cannot get opener" in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           begin match w.win_opener with
-  //           | No_opener -> (b, X(R(Null_value)), [], [])
-  //           | Win_opener(wr') -> (b, X(R(Win_value(wr))), [], [])
-  //           end
-  //       end
-  //   | Get_win_location(X(R(Win_value(wr)))) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err = "window was closed---cannot get location" in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           let u =
-  //             (page_assoc_valid w.win_page b).page_location
-  //           in
-  //           (b, X(R(Url_value(u))), [], [])
-  //       end
+    | Set_cookie(
+          X(R(Url_value(Http_url(d, uri)))),
+          X(R(String_value(ck))),
+          X(R(Null_value))) ->
+        let b' = del_site_cookie d uri.req_uri_path ck b in
+        (b', X(R(Null_value)), [], [])
+    | Set_cookie(
+          X(R(Url_value(Http_url(d, uri)))),
+          X(R(String_value(ck))),
+          X(R(String_value(cv)))) ->
+        let b' = set_site_cookie d uri.req_uri_path (ck, cv) b in
+        (b', X(R(Null_value)), [], [])
 
-  //   | Get_win_name(X(R(Win_value(wr)))) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err = "window was closed---cannot get name" in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           begin match w.win_name with
-  //           | No_name ->
-  //               (b, X(R(Null_value)), [], [])
-  //           | Str_name(str) ->
-  //               (b, X(R(String_value(str))), [], [])
-  //           end
-  //       end
+    | Xhr(X(R(Url_value(Blank_url))), X(R(_)), X(R(_))) ->
+        (b, X(R(Null_value)), [], [])
+        (* XXX: perhaps this should be an error, rather than a no-op *)
 
-  //   | Set_win_name(X(R(Win_value(wr))), X(R(Null_value))) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err = "window was closed---cannot unset name" in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           let w' = { w with win_name = No_name } in
-  //           let b' = win_update wr w' b in
-  //           (b', X(R(Null_value)), [], [])
-  //       end
-  //   | Set_win_name(X(R(Win_value(wr))), X(R(String_value(str)))) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err = "window was closed---cannot set name" in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           let w' = { w with win_name = Str_name(str) } in
-  //           let b' = win_update wr w' b in
-  //           (b', X(R(Null_value)), [], [])
-  //       end
-
-  //   | Get_win_root_node(X(R(Win_value(wr)))) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err = "window was closed---cannot get root node" in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           begin match (page_assoc_valid w.win_page b).page_document with
-  //           | None ->
-  //               (b, X(R(Null_value)), [], [])
-  //           | Some(dr) ->
-  //               (b, X(R(Node_value(dr))), [], [])
-  //           end
-  //       end
-  //   | Set_win_root_node(
-  //         X(R(Win_value(wr))),
-  //         X(R(Node_value(dr)))) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err = "window was closed---cannot set root node" in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           let (b', oes1) = node_remove dr b in
-  //           let p = page_assoc_valid w.win_page b in
-  //           let p' = { p with page_document = Some(dr) } in
-  //           let b'' = page_update w.win_page p' b' in
-  //           let (b''', oes2, ts) = process_node_scripts w.win_page dr b'' in
-  //           let oes = oes1 @ [ page_update_event w.win_page b''' ] @ oes2 in
-  //           (b''', X(R(Null_value)), oes, ts)
-  //       end
-
-  //   | Get_win_var(X(R(Win_value(wr))), x) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err =
-  //             Printf.sprintf "window was closed---cannot get variable %S"
-  //               x.var_name
-  //           in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           let ar = (page_assoc_valid w.win_page b).page_environment in
-  //           begin match get_var x ar b with
-  //           | None ->
-  //               let err =
-  //                 Printf.sprintf "window variable %S not found" x.var_name
-  //               in
-  //               (b, X(R(Error(err))), [], [])
-  //           | Some(r) ->
-  //               (b, X(R(r)), [], [])
-  //           end
-  //       end
-  //   | Set_win_var(X(R(Win_value(wr))), x, X(R(r2))) ->
-  //       begin match win_assoc wr b with
-  //       | None ->
-  //           let err =
-  //             Printf.sprintf "window was closed---cannot set variable %s"
-  //               x.var_name
-  //           in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Some(w) ->
-  //           let ar = (page_assoc_valid w.win_page b).page_environment in
-  //           let b' = set_var x r2 ar b in
-  //           (b', X(R(Null_value)), [], [])
-  //       end
-
-  //   | New_node(X(R(String_value("para")))) ->
-  //       let (dr, b') = node_new (Para_node(None, "")) b in
-  //       (b', X(R(Node_value(dr))), [], [])
-
-  //   | New_node(X(R(String_value("link")))) ->
-  //       let (dr, b') = node_new (Link_node(None, Blank_url, "")) b in
-  //       (b', X(R(Node_value(dr))), [], [])
-
-  //   | New_node(X(R(String_value("textbox")))) ->
-  //       let (dr, b') = node_new (Textbox_node(None, "", [])) b in
-  //       (b', X(R(Node_value(dr))), [], [])
-
-  //   | New_node(X(R(String_value("button")))) ->
-  //       let (dr, b') = node_new (Button_node(None, "", [])) b in
-  //       (b', X(R(Node_value(dr))), [], [])
-
-  //   | New_node(X(R(String_value("inl_script")))) ->
-  //       let (dr, b') = node_new (Inl_script_node(None, Null, false)) b in
-  //       (b', X(R(Node_value(dr))), [], [])
-
-  //   | New_node(X(R(String_value("rem_script")))) ->
-  //       let (dr, b') = node_new (Rem_script_node(None, Blank_url, false)) b in
-  //       (b', X(R(Node_value(dr))), [], [])
-
-  //   | New_node(X(R(String_value("div")))) ->
-  //       let (dr, b') = node_new (Div_node(None, [])) b in
-  //       (b', X(R(Node_value(dr))), [], [])
-
-  //   | New_node(X(R(String_value(_)))) ->
-  //       let err = "expected valid node type string" in
-  //       (b, X(R(Error(err))), [], [])
-
-  //   | Get_node_type(X(R(Node_value(dr)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Para_node(_, _) ->
-  //           (b, X(R(String_value("para"))), [], [])
-  //       | Link_node(_, _, _) ->
-  //           (b, X(R(String_value("link"))), [], [])
-  //       | Textbox_node(_, _, _) ->
-  //           (b, X(R(String_value("textbox"))), [], [])
-  //       | Button_node(_, _, _) ->
-  //           (b, X(R(String_value("button"))), [], [])
-  //       | Inl_script_node(_, _, _) ->
-  //           (b, X(R(String_value("inl_script"))), [], [])
-  //       | Rem_script_node(_, _, _) ->
-  //           (b, X(R(String_value("rem_script"))), [], [])
-  //       | Div_node(_, _) ->
-  //           (b, X(R(String_value("div"))), [], [])
-  //       end
-
-  //   | Get_node_contents(X(R(Node_value(dr)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Para_node(_, txt) ->
-  //           (b, X(R(String_value(txt))), [], [])
-  //       | Link_node(_, _, txt) ->
-  //           (b, X(R(String_value(txt))), [], [])
-  //       | Button_node(_, txt, _) ->
-  //           (b, X(R(String_value(txt))), [], [])
-  //       | Inl_script_node(_, e, _) ->
-  //           (b, X(R(Code_value(e))), [], [])
-  //       | _ ->
-  //           let err = "node has no contents" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-  //   | Set_node_contents(X(R(Node_value(dr))), X(R(String_value(s)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Para_node(oeid, _) ->
-  //           let b' = node_update dr (Para_node(oeid, s)) b in
-  //           (b', X(R(String_value(s))), [], [])
-  //       | Link_node(oeid, u, _) ->
-  //           let b' = node_update dr (Link_node(oeid, u, s)) b in
-  //           (b', X(R(String_value(s))), [], [])
-  //       | Button_node(oeid, _, hs) ->
-  //           let b' = node_update dr (Button_node(oeid, s, hs)) b in
-  //           (b', X(R(String_value(s))), [], [])
-  //       | _ ->
-  //           let err = "node has no string contents" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-  //   | Set_node_contents(X(R(Node_value(dr))), X(R(Code_value(e)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Inl_script_node(oeid, _, flag) ->
-  //           let b' = node_update dr (Inl_script_node(oeid, e, flag)) b in
-  //           (b', X(R(Code_value(e))), [], [])
-  //       | _ ->
-  //           let err = "node has no script contents" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-
-  //   | Get_node_attr(X(R(Node_value(dr))), X(R(String_value("id")))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Para_node(Some({ elt_id_value = id }), _)
-  //       | Link_node(Some({ elt_id_value = id }), _, _)
-  //       | Textbox_node(Some({ elt_id_value = id }), _, _)
-  //       | Button_node(Some({ elt_id_value = id }), _, _)
-  //       | Inl_script_node(Some({ elt_id_value = id }), _, _)
-  //       | Rem_script_node(Some({ elt_id_value = id }), _, _)
-  //       | Div_node(Some({ elt_id_value = id }), _) ->
-  //           (b, X(R(String_value(id))), [], [])
-  //       | _ ->
-  //           (b, X(R(Null_value)), [], [])
-  //       end
-  //   | Set_node_attr(
-  //         X(R(Node_value(dr))),
-  //         X(R(String_value("id"))),
-  //         X(R(Null_value))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Para_node(_, text) ->
-  //           let b' = node_update dr (Para_node(None, text)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Link_node(_, u, text) ->
-  //           let b' = node_update dr (Link_node(None, u, text)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Textbox_node(_, s, hs) ->
-  //           let b' = node_update dr (Textbox_node(None, s, hs)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Button_node(_, s, hs) ->
-  //           let b' = node_update dr (Button_node(None, s, hs)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Inl_script_node(_, e, flag) ->
-  //           let b' = node_update dr (Inl_script_node(None, e, flag)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Rem_script_node(_, u, flag) ->
-  //           let b' = node_update dr (Rem_script_node(None, u, flag)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Div_node(_, ns) ->
-  //           let b' = node_update dr (Div_node(None, ns)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       end
-  //   | Set_node_attr(
-  //         X(R(Node_value(dr))),
-  //         X(R(String_value("id"))),
-  //         X(R(String_value(s)))) ->
-  //       let oeid = Some({ elt_id_value = s }) in
-  //       begin match node_assoc_valid dr b with
-  //       | Para_node(_, text) ->
-  //           let b' = node_update dr (Para_node(oeid, text)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Link_node(_, u, text) ->
-  //           let b' = node_update dr (Link_node(oeid, u, text)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Textbox_node(_, s, hs) ->
-  //           let b' = node_update dr (Textbox_node(oeid, s, hs)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Button_node(_, s, hs) ->
-  //           let b' = node_update dr (Button_node(oeid, s, hs)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Inl_script_node(_, e, flag) ->
-  //           let b' = node_update dr (Inl_script_node(oeid, e, flag)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Rem_script_node(_, u, flag) ->
-  //           let b' = node_update dr (Rem_script_node(oeid, u, flag)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Div_node(_, ns) ->
-  //           let b' = node_update dr (Div_node(oeid, ns)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       end
-
-  //   | Get_node_attr(X(R(Node_value(dr))), X(R(String_value("href")))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Link_node(_, u, _) ->
-  //           (b, X(R(Url_value(u))), [], [])
-  //       | _ ->
-  //           let err = "node has no 'href' attribute" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-  //   | Set_node_attr(
-  //         X(R(Node_value(dr))),
-  //         X(R(String_value("href"))),
-  //         X(R(Url_value(u)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Link_node(oeid, _, text) ->
-  //           let b' = node_update dr (Link_node(oeid, u, text)) b in
-  //           let oes =
-  //             begin match node_page dr b' with
-  //             | None -> []
-  //             | Some(pr) -> [ page_update_event pr b' ]
-  //             end
-  //           in
-  //           (b', X(R(Url_value(u))), oes, [])
-  //       | _ ->
-  //           let err = "node has no 'href' attribute" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-
-  //   | Get_node_attr(X(R(Node_value(dr))), X(R(String_value("value")))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Textbox_node(_, s, _) ->                             
-  //           (b, X(R(String_value(s))), [], [])
-  //       | _ ->
-  //           let err = "node has no 'value' attribute" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-  //   | Set_node_attr(
-  //         X(R(Node_value(dr))),
-  //         X(R(String_value("value"))),
-  //         X(R(String_value(s)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Textbox_node(oeid, _, handlers) ->
-  //           let b' = node_update dr (Textbox_node(oeid, s, handlers)) b in
-  //           let oes =
-  //             begin match node_page dr b' with
-  //             | None -> []
-  //             | Some(pr) -> [ page_update_event pr b' ]
-  //             end
-  //           in
-  //           (b', X(R(String_value(s))), oes, [])
-  //       | _ ->
-  //           let err = "node has no 'value' attribute" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-
-  //   | Get_node_attr(X(R(Node_value(dr))), X(R(String_value("src")))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Rem_script_node(_, u, _) ->
-  //           (b, X(R(Url_value(u))), [], [])
-  //       | _ ->
-  //           let err = "node has no 'src' attribute" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-  //   | Set_node_attr(
-  //         X(R(Node_value(dr))),
-  //         X(R(String_value("src"))),
-  //         X(R(Url_value(u)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Rem_script_node(oeid, _, flag) ->
-  //           let b' = node_update dr (Rem_script_node(oeid, u, flag)) b in
-  //           (b', X(R(Url_value(u))), [], [])
-  //       | _ ->
-  //           let err = "node has no 'src' attribute" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-
-  //   | Remove_handlers(X(R(Node_value(dr)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Textbox_node(id, s, _) ->
-  //           let dn' = Textbox_node(id, s, []) in
-  //           let b' = node_update dr dn' b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Button_node(id, s, _) ->
-  //           let dn' = Button_node(id, s, []) in
-  //           let b' = node_update dr dn' b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | _ ->
-  //           let err = "expected textbox or button node" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-  //   | Add_handler(X(R(Node_value(dr))), X(R(Closure(_, _, _, _)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Textbox_node(oeid, str, hs) ->
-  //           let b' = node_update dr (Textbox_node(oeid, str, Closure(_, _, _, _) :: hs)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | Button_node(oeid, str, hs) ->
-  //           let b' = node_update dr (Button_node(oeid, str, Closure(_, _, _, _) :: hs)) b in
-  //           (b', X(R(Null_value)), [], [])
-  //       | _ ->
-  //           let err = "expected textbox or button node" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-
-  //   | Get_parent(X(R(Node_value(dr)))) ->
-  //       begin match node_parent dr b with
-  //       | Parent_node(parent) ->
-  //           (b, X(R(Node_value(parent))), [], [])
-  //       | _ ->
-  //           (b, X(R(Null_value)), [], [])
-  //       end
-  //   | Get_child(X(R(Node_value(dr))), X(R(Int_value(i)))) ->
-  //       begin match node_assoc_valid dr b with
-  //       | Div_node(_, drs) ->
-  //           begin if List.length drs <= i then
-  //             (b, X(R(Null_value)), [], [])
-  //           else
-  //             (b, X(R(Node_value(List.nth drs i))), [], [])
-  //           end
-  //       | _ ->
-  //           let err = "expected div node" in
-  //           (b, X(R(Error(err))), [], [])
-  //       end
-  //   | Insert_node(
-  //         X(R(Node_value(dr1))),
-  //         X(R(Node_value(dr2))),
-  //         X(R(Int_value(k)))) ->
-  //       begin try
-  //         let (b', oes, ts) = node_insert dr1 dr2 k b in
-  //         (b', X(R(Null_value)), oes, ts)
-  //       with
-  //       | Failure("node_insert") ->
-  //           let err = "parent node not a div node or a descendant of child" in
-  //           (b, X(R(Error(err))), [], [])
-  //       | Failure("insert_in_list") ->
-  //           (b, X(R(Error("div node has too few children"))), [], [])
-  //       end
-  //   | Remove_node(X(R(Node_value(dr)))) ->
-  //       let (b', oes) = node_remove dr b in
-  //       (b', X(R(Null_value)), oes, [])
-
-  //   // (* congurence rules: evaluation in subexpressions *)
-
-  //   // | Eval(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b, Eval(e1'), oes, ts)
-  //   // | Apply(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Apply(X(R(_)), e2'), oes, ts)
-  //   // | Apply(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Apply(e1', e2), oes, ts)
-  //   // | Prim1(prim, e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Prim1(prim, e1'), oes, ts)
-  //   // | Prim2(prim, X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Prim2(prim, X(R(_)), e2'), oes, ts)
-  //   // | Prim2(prim, e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Prim2(prim, e1', e2), oes, ts)
-  //   // | Alert(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Alert(e1'), oes, ts)
-  //   // | If(e1, e2, e3) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', If(e1', e2, e3), oes, ts)
-  //   // | Set_var(x, e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Set_var(x, e1'), oes, ts)
-  //   // | Seq(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Seq(e1', e2), oes, ts)
-  //   // | Get_cookie(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Get_cookie(X(R(_)), e2'), oes, ts)
-  //   // | Get_cookie(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_cookie(e1', e2), oes, ts)
-  //   // | Set_cookie((X(R(_))), (X(R(_))), e3) ->
-  //   //     let (b', e3', oes, ts) = step b e3 in
-  //   //     (b', Set_cookie(X(R(_)), X(R(_)), e3'), oes, ts)
-  //   // | Set_cookie((X(R(_))), e2, e3) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Set_cookie(X(R(_)), e2', e3), oes, ts)
-  //   // | Set_cookie(e1, e2, e3) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Set_cookie(e1', e2, e3), oes, ts)
-  //   // | Xhr((X(R(_))), (X(R(_))), e3) ->
-  //   //     let (b', e3', oes, ts) = step b e3 in
-  //   //     (b', Xhr(X(R(_)), X(R(_)), e3'), oes, ts)
-  //   // | Xhr((X(R(_))), e2, e3) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Xhr(X(R(_)), e2', e3), oes, ts)
-  //   // | Xhr(e1, e2, e3) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Xhr(e1', e2, e3), oes, ts)
-  //   // | Named_win(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Named_win(e1'), oes, ts)
-  //   // | Open_win(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Open_win(e1'), oes, ts)
-  //   // | Open_named_win(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Open_named_win(X(R(_)), e2'), oes, ts)
-  //   // | Open_named_win(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Open_named_win(e1', e2), oes, ts)
-  //   // | Close_win(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Close_win(e1'), oes, ts)
-  //   // | Navigate_win(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Navigate_win(X(R(_)), e2'), oes, ts)
-  //   // | Navigate_win(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Navigate_win(e1', e2), oes, ts)
-  //   // | Is_win_closed(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Is_win_closed(e1'), oes, ts)
-  //   // | Get_win_opener(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_win_opener(e1'), oes, ts)
-  //   // | Get_win_location(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_win_location(e1'), oes, ts)
-  //   // | Get_win_name(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_win_name(e1'), oes, ts)
-  //   // | Set_win_name(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Set_win_name(X(R(_)), e2'), oes, ts)
-  //   // | Set_win_name(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Set_win_name(e1', e2), oes, ts)
-  //   // | Get_win_root_node(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_win_root_node(e1'), oes, ts)
-  //   // | Set_win_root_node(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Set_win_root_node(X(R(_)), e2'), oes, ts)
-  //   // | Set_win_root_node(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Set_win_root_node(e1', e2), oes, ts)
-  //   // | Get_win_var(e1, x) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_win_var(e1', x), oes, ts)
-  //   // | Set_win_var(X(R(_)), x, e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Set_win_var(X(R(_)), x, e2'), oes, ts)
-  //   // | Set_win_var(e1, x, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Set_win_var(e1', x, e2), oes, ts)
-  //   // | New_node(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', New_node(e1'), oes, ts)
-  //   // | Get_node_type(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_node_type(e1'), oes, ts)
-  //   // | Get_node_contents(e1) -> 
-  //   //    let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_node_contents(e1'), oes, ts)
-  //   // | Set_node_contents(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Set_node_contents(X(R(_)), e2'), oes, ts)
-  //   // | Set_node_contents(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Set_node_contents(e1', e2), oes, ts)
-  //   // | Get_node_attr(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Get_node_attr(X(R(_)), e2'), oes, ts)
-  //   // | Get_node_attr(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_node_attr(e1', e2), oes, ts)
-  //   // | Set_node_attr((X(R(_))), (X(R(_))), e3) ->
-  //   //     let (b', e3', oes, ts) = step b e3 in
-  //   //     (b', Set_node_attr(X(R(_)), X(R(_)), e3'), oes, ts)
-  //   // | Set_node_attr((X(R(_))), e2, e3) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Set_node_attr(X(R(_)), e2', e3), oes, ts)
-  //   // | Set_node_attr(e1, e2, e3) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Set_node_attr(e1', e2, e3), oes, ts)
-  //   // | Remove_handlers(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Remove_handlers(e1'), oes, ts)
-  //   // | Add_handler((X(R(_))), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Add_handler(X(R(_)), e2'), oes, ts)
-  //   // | Add_handler(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Add_handler(e1', e2), oes, ts)
-  //   // | Get_child(X(R(_)), e2) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Get_child(X(R(_)), e2'), oes, ts)
-  //   // | Get_parent(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_parent(e1'), oes, ts)
-  //   // | Get_child(e1, e2) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Get_child(e1', e2), oes, ts)
-  //   // | Insert_node((X(R(_))), (X(R(_))), e3) ->
-  //   //     let (b', e3', oes, ts) = step b e3 in
-  //   //     (b', Insert_node(X(R(_)), X(R(_)), e3'), oes, ts)
-  //   // | Insert_node((X(R(_))), e2, e3) ->
-  //   //     let (b', e2', oes, ts) = step b e2 in
-  //   //     (b', Insert_node(X(R(_)), e2', e3), oes, ts)
-  //   // | Insert_node(e1, e2, e3) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Insert_node(e1', e2, e3), oes, ts)
-  //   // | Remove_node(e1) ->
-  //   //     let (b', e1', oes, ts) = step b e1 in
-  //   //     (b', Remove_node(e1'), oes, ts)
-
-  //    end
+    | Xhr(X(R(Url_value(Http_url(d, uri)))),
+          X(R(String_value(msg))), X(R(Closure(_, _, _, _)))) ->
+        begin if not (win_valid ctx.context_win b) then
+          let err = "window was closed---cannot make AJAX request" in
+          (b, X(R(Error(err))), [], [])
+        else
+          let w = win_assoc_valid ctx.context_win b in
+          let dst = Xhr_dst(w.win_page, Closure(_, _, _, _)) in
+          let (b', oe) = http_send d uri msg dst b in
+          (b', X(R(Null_value)), [ oe ], [])
+        end
+end

@@ -38,8 +38,8 @@ open Browser
 
   (** Handling a [User_load_in_new_win_event]. *)
   let handle_load_in_new_win_event
-    (wo: win_opener) (wn: win_name) (u: url) (b: b)
-  : state * output_event list =
+    (wo: win_opener) (wn: win_name) (u: url) (b: browser)
+  : state * list output_event =
     let (_, b', oes) = open_win wn u wo b in
     let r = {
       running_state = b';
@@ -229,7 +229,7 @@ open Browser
 
   (** Respond to an incoming event. *)
   let receive (ie: input_event) (w: waiting)
-  : state * output_event list =
+  : state * list output_event=
     begin match ie with
 
     | User_load_in_new_win_event(u) ->
@@ -289,7 +289,7 @@ open Browser
 
   (** Advance the browser state one step. *)
   let continue (r: running)
-  : state * output_event list =
+  : state * list output_event =
     let current t = win_valid t.task_win r.running_state in
     begin match r.running_task_queue with
     | [] ->

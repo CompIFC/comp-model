@@ -81,10 +81,6 @@ type inner =
   | Scoped_expr of (context * inner BrowserIO.expr) 
   | R of value 
 and value =
-  | Closure of context * BrowserIO.var * BrowserIO.var Prims.list * inner
-  BrowserIO.expr 
-  | Win_value of win_ref 
-  | Node_value of node_ref 
   | Null_value 
   | Bool_value of Prims.bool 
   | Int_value of Prims.int 
@@ -92,6 +88,10 @@ and value =
   | Url_value of BrowserIO.url 
   | Type_value of BrowserIO.typ 
   | Code_value of unit BrowserIO.expr 
+  | Win_value of win_ref 
+  | Node_value of node_ref 
+  | Closure of (context * BrowserIO.var * BrowserIO.var Prims.list * inner
+  BrowserIO.expr) 
   | Error of Prims.string 
 let (uu___is_Scoped_expr : inner -> Prims.bool) =
   fun projectee ->
@@ -103,27 +103,6 @@ let (uu___is_R : inner -> Prims.bool) =
   fun projectee -> match projectee with | R _0 -> true | uu___ -> false
 let (__proj__R__item___0 : inner -> value) =
   fun projectee -> match projectee with | R _0 -> _0
-let (uu___is_Closure : value -> Prims.bool) =
-  fun projectee ->
-    match projectee with | Closure (_0, _1, _2, _3) -> true | uu___ -> false
-let (__proj__Closure__item___0 : value -> context) =
-  fun projectee -> match projectee with | Closure (_0, _1, _2, _3) -> _0
-let (__proj__Closure__item___1 : value -> BrowserIO.var) =
-  fun projectee -> match projectee with | Closure (_0, _1, _2, _3) -> _1
-let (__proj__Closure__item___2 : value -> BrowserIO.var Prims.list) =
-  fun projectee -> match projectee with | Closure (_0, _1, _2, _3) -> _2
-let (__proj__Closure__item___3 : value -> inner BrowserIO.expr) =
-  fun projectee -> match projectee with | Closure (_0, _1, _2, _3) -> _3
-let (uu___is_Win_value : value -> Prims.bool) =
-  fun projectee ->
-    match projectee with | Win_value _0 -> true | uu___ -> false
-let (__proj__Win_value__item___0 : value -> win_ref) =
-  fun projectee -> match projectee with | Win_value _0 -> _0
-let (uu___is_Node_value : value -> Prims.bool) =
-  fun projectee ->
-    match projectee with | Node_value _0 -> true | uu___ -> false
-let (__proj__Node_value__item___0 : value -> node_ref) =
-  fun projectee -> match projectee with | Node_value _0 -> _0
 let (uu___is_Null_value : value -> Prims.bool) =
   fun projectee -> match projectee with | Null_value -> true | uu___ -> false
 let (uu___is_Bool_value : value -> Prims.bool) =
@@ -154,8 +133,25 @@ let (__proj__Type_value__item___0 : value -> BrowserIO.typ) =
 let (uu___is_Code_value : value -> Prims.bool) =
   fun projectee ->
     match projectee with | Code_value _0 -> true | uu___ -> false
-let (__proj__Code_value__item___0 : value -> Prims.l_False BrowserIO.expr) =
+let (__proj__Code_value__item___0 : value -> unit BrowserIO.expr) =
   fun projectee -> match projectee with | Code_value _0 -> _0
+let (uu___is_Win_value : value -> Prims.bool) =
+  fun projectee ->
+    match projectee with | Win_value _0 -> true | uu___ -> false
+let (__proj__Win_value__item___0 : value -> win_ref) =
+  fun projectee -> match projectee with | Win_value _0 -> _0
+let (uu___is_Node_value : value -> Prims.bool) =
+  fun projectee ->
+    match projectee with | Node_value _0 -> true | uu___ -> false
+let (__proj__Node_value__item___0 : value -> node_ref) =
+  fun projectee -> match projectee with | Node_value _0 -> _0
+let (uu___is_Closure : value -> Prims.bool) =
+  fun projectee -> match projectee with | Closure _0 -> true | uu___ -> false
+let (__proj__Closure__item___0 :
+  value ->
+    (context * BrowserIO.var * BrowserIO.var Prims.list * inner
+      BrowserIO.expr))
+  = fun projectee -> match projectee with | Closure _0 -> _0
 let (uu___is_Error : value -> Prims.bool) =
   fun projectee -> match projectee with | Error _0 -> true | uu___ -> false
 let (__proj__Error__item___0 : value -> Prims.string) =
@@ -175,8 +171,7 @@ let (prim1 : Prims.string -> value -> value) =
       | ("typeof", Code_value uu___) -> Type_value BrowserIO.Code_type
       | ("typeof", Win_value uu___) -> Type_value BrowserIO.Window_type
       | ("typeof", Node_value uu___) -> Type_value BrowserIO.Node_type
-      | ("typeof", Closure (uu___, uu___1, uu___2, uu___3)) ->
-          Type_value BrowserIO.Function_type
+      | ("typeof", Closure uu___) -> Type_value BrowserIO.Function_type
       | ("StringToInt", String_value s) ->
           Int_value (Assumed.int_of_string s)
       | ("IntToString", Int_value i) -> String_value (Prims.string_of_int i)
@@ -1285,30 +1280,33 @@ let (direct_win :
                else (b, [BrowserIO.UI_error "invalid win_ref or page_ref"]))
           | uu___ -> fetch_url u wr b
         else (b, [BrowserIO.UI_error "invalid win_ref"])
+let rec map' : 'a 'b . 'a Prims.list -> ('a -> 'b) -> 'b Prims.list =
+  fun l -> fun f -> match l with | [] -> [] | h::t -> (f h) :: (map' t f)
 let rec (build_node_tree :
-  BrowserIO.doc -> browser -> (node_ref * (node_ref * node) Prims.list)) =
+  BrowserIO.doc -> node_ref -> (node_ref * (node_ref * node) Prims.list)) =
   fun doc ->
-    fun b ->
-      let n_ref =
-        if (FStar_List_Tot_Base.length b.browser_nodes) >= Prims.int_one
-        then
-          FStar_Pervasives_Native.fst
-            (FStar_List_Tot_Base.last b.browser_nodes)
-        else Prims.int_zero in
-      let dr = fresh_node_ref n_ref in
+    fun dr ->
+      let dr1 = dr + Prims.int_one in
       match doc with
-      | BrowserIO.Para (id, text) -> (dr, [(dr, (Para_node (id, text)))])
+      | BrowserIO.Para (id, text) -> (dr1, [(dr1, (Para_node (id, text)))])
       | BrowserIO.Link (id, u, text) ->
-          (dr, [(dr, (Link_node (id, u, text)))])
+          (dr1, [(dr1, (Link_node (id, u, text)))])
       | BrowserIO.Textbox (id, text) ->
-          (dr, [(dr, (Textbox_node (id, text, [])))])
+          (dr1, [(dr1, (Textbox_node (id, text, [])))])
       | BrowserIO.Button (id, text) ->
-          (dr, [(dr, (Button_node (id, text, [])))])
+          (dr1, [(dr1, (Button_node (id, text, [])))])
       | BrowserIO.Inl_script (id, e) ->
-          (dr, [(dr, (Inl_script_node (id, e, false)))])
+          (dr1, [(dr1, (Inl_script_node (id, e, false)))])
       | BrowserIO.Rem_script (id, u) ->
-          (dr, [(dr, (Rem_script_node (id, u, false)))])
-      | BrowserIO.Divi (id, subdocs) -> (dr, [(dr, (Div_node (id, [])))])
+          (dr1, [(dr1, (Rem_script_node (id, u, false)))])
+      | BrowserIO.Divi (id, subdocs) ->
+          let uu___ =
+            FStar_List_Tot_Base.split
+              (map' subdocs (fun doc1 -> build_node_tree doc1 dr1)) in
+          (match uu___ with
+           | (drs, nhs) ->
+               (dr1, ((dr1, (Div_node (id, drs))) ::
+                 (FStar_List_Tot_Base.flatten nhs))))
 let rec (take_ready :
   queued_expr Prims.list -> inner BrowserIO.expr Prims.list) =
   fun qes ->
@@ -1427,7 +1425,7 @@ let rec (process_node_scripts_aux :
                   (let uu___1 = process_node_scripts_aux pr dr tl bc cookies in
                    match uu___1 with
                    | (bn', q, oe, bc') -> (((nr, n) :: bn'), q, oe, bc'))
-let rec (process_node_scripts :
+let (process_node_scripts :
   page_ref ->
     node_ref ->
       browser ->
@@ -1607,6 +1605,46 @@ let rec insert_in_list :
             then x' :: (insert_in_list x xs' (k1 - Prims.int_one))
             else []
         | (uu___, uu___1) -> []
+let (node_insert :
+  node_ref ->
+    node_ref ->
+      Prims.int ->
+        browser ->
+          (browser * BrowserIO.output_event Prims.list * task Prims.list))
+  =
+  fun parent ->
+    fun child ->
+      fun posi ->
+        fun b ->
+          if (node_valid parent b) && (node_valid child b)
+          then
+            let uu___ = node_remove child b in
+            match uu___ with
+            | (b', oes1) ->
+                (if node_valid parent b'
+                 then
+                   match node_assoc_valid parent b' with
+                   | Div_node (id, children) ->
+                       let children' = insert_in_list child children posi in
+                       let dn' = Div_node (id, children') in
+                       (if b_node_ref_pred parent dn'
+                        then
+                          let b'' = node_update parent dn' b' in
+                          match node_page parent b'' with
+                          | FStar_Pervasives_Native.None -> (b'', oes1, [])
+                          | FStar_Pervasives_Native.Some pr ->
+                              let uu___1 = process_node_scripts pr child b'' in
+                              (match uu___1 with
+                               | (b''', oes2, ts) ->
+                                   (b''',
+                                     (FStar_List_Tot_Base.op_At oes1
+                                        (FStar_List_Tot_Base.op_At
+                                           [page_update_event pr b'''] oes2)),
+                                     ts))
+                        else (b, [], []))
+                   | uu___1 -> (b, [], [])
+                 else (b, [], []))
+          else (b, [], [])
 let (rslt_to_elt_it_opt :
   value -> BrowserIO.elt_id FStar_Pervasives_Native.option) =
   fun r ->
