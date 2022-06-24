@@ -1071,12 +1071,12 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
       appropriate node data.  It also returns the reference to the root of the
       node tree that was created. *)
  let rec map' (nr:node_ref) (l:list doc) (f:(x:doc {x << l} -> node_ref -> (r':(node_ref * list (node_ref * node)){let (r, l) = r' in length l >= 1}))) :
-      Tot (l':list (node_ref * (list (node_ref * node)))) (decreases l) =
+      Tot (list (node_ref * (list (node_ref * node)))) (decreases l) =
   match l with
   | [] -> []
   | h::t -> let (nr', ln) = f h nr in
 	  (nr', ln) :: (map' (nr' + (length ln - 1)) t f)
-    
+
   let rec build_node_tree (doc: doc)(dr:node_ref)
   : (l':(node_ref * list (node_ref * node)){let (r, l) = l' in length l >= 1}) =
     let dr = dr+1 in
@@ -1410,7 +1410,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
     | Get_child(X(R(Error(s))), _)
     | Insert_node(X(R(Error(s))), _, _)
     | Remove_node(X(R(Error(s)))) ->
-admit();
+
       (b, X(R(Error(s))), [], [])
 
     | Apply(X(R(_)), X(R(Error(s))))
@@ -1429,7 +1429,7 @@ admit();
     | Get_child(X(R(_)), X(R(Error(s))))
     | Insert_node(X(R(_)), X(R(Error(s))), _)
     | Xhr(X(R(_)), X(R(Error(s))), _) ->
-admit();
+
         (b, X(R(Error(s))), [], [])
 
 
@@ -1437,7 +1437,7 @@ admit();
     | Xhr(X(R(_)), X(R(_)), X(R(Error(s))))
     | Set_node_attr(X(R(_)), X(R(_)), X(R(Error(s))))
     | Insert_node(X(R(_)), X(R(_)), X(R(Error(s)))) ->
-admit();
+
         (b, X(R(Error(s))), [], [])
 
     (* computational rules *)
@@ -1449,7 +1449,7 @@ admit();
         (b, X(R(Error(err))), [], [])
 
     | X(Scoped_expr(_, X(R(r1)))) ->
-    admit();
+  
         (b, X(R(r1)), [], [])
 
     | X(Scoped_expr(ctx', e1)) ->
