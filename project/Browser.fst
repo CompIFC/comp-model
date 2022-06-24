@@ -164,7 +164,7 @@ let prim2 (prim: string) (r1: value) (r2: value)
     let f = to_inner_expr in
     begin match e with
     // ---TO DO--
-    | X(_) ->  Null  (* unreachable case *)            // assert (False)    --TODO--
+    | X(_) -> X(R(Error("Unreachable case encountered")))  (* unreachable case *) // assert (False)    
     | Null -> Null
     | Bool(b) -> Bool(b)
     | Int(n) -> Int(n)
@@ -573,12 +573,15 @@ let node_update (dr: node_ref) (dn: node{b_node_ref_pred dr dn}) (b: browser)
     let nodes' = upd_assoc dr dn b.browser_nodes in
     node_update_lemma dr dn b.browser_nodes;
     { b with browser_nodes = nodes' }
- 
+
+let node_pred (dn: node) (b: browser) =
+  let n_ref = (if length (b.browser_nodes) >= 1 then (fst (last b.browser_nodes)) else 0) in
+  let nr = fresh_node_ref (n_ref) in
+  b_node_ref_pred nr dn
+  
 (** [node_new dn b] adds [dn] to the node store of [b] and returns its
       fresh key. *)
-let node_new (dn: node) (b: browser{let n_ref = (if length (b.browser_nodes) >= 1 then (fst (last b.browser_nodes)) else 0) in
-		        let nr = fresh_node_ref (n_ref) in
-			b_node_ref_pred nr dn})
+let node_new (dn: node) (b: browser{node_pred dn b})
   : node_ref * browser =
   let n_ref = if length b.browser_nodes >= 1 then (fst (last b.browser_nodes)) else 0 in
   let nr = fresh_node_ref n_ref in
@@ -1071,7 +1074,7 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
       appropriate node data.  It also returns the reference to the root of the
       node tree that was created. *)
  let rec map' (nr:node_ref) (l:list doc) (f:(x:doc {x << l} -> node_ref -> (r':(node_ref * list (node_ref * node)){let (r, l) = r' in length l >= 1}))) :
-      Tot (l':list (node_ref * (list (node_ref * node)))) (decreases l) =
+      Tot (list (node_ref * (list (node_ref * node)))) (decreases l) =
   match l with
   | [] -> []
   | h::t -> let (nr', ln) = f h nr in
@@ -1368,7 +1371,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
 
 (** Carries out a single step of executing a script expression. *)
  let rec step_expr (ctx: context) (b: browser) (e: expr inner)
-  : browser * expr inner * list output_event* list task =
+  : Tot (browser * expr inner * list output_event * list task) (decreases e)  =
   begin match e with
 
 (* error propagation rules: an expression with an error in a subexression
@@ -1410,7 +1413,6 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
     | Get_child(X(R(Error(s))), _)
     | Insert_node(X(R(Error(s))), _, _)
     | Remove_node(X(R(Error(s)))) ->
-admit();
       (b, X(R(Error(s))), [], [])
 
     | Apply(X(R(_)), X(R(Error(s))))
@@ -1429,15 +1431,12 @@ admit();
     | Get_child(X(R(_)), X(R(Error(s))))
     | Insert_node(X(R(_)), X(R(Error(s))), _)
     | Xhr(X(R(_)), X(R(Error(s))), _) ->
-admit();
         (b, X(R(Error(s))), [], [])
-
 
     | Set_cookie(X(R(_)), X(R(_)), X(R(Error(s))))
     | Xhr(X(R(_)), X(R(_)), X(R(Error(s))))
     | Set_node_attr(X(R(_)), X(R(_)), X(R(Error(s))))
     | Insert_node(X(R(_)), X(R(_)), X(R(Error(s)))) ->
-admit();
         (b, X(R(Error(s))), [], [])
 
     (* computational rules *)
@@ -1445,11 +1444,9 @@ admit();
     | X(R(_)) ->
         (* this should only be reached in the case of a runtime type error *)
         let err = "run-time type error" in
-        admit();
         (b, X(R(Error(err))), [], [])
 
     | X(Scoped_expr(_, X(R(r1)))) ->
-    admit();
         (b, X(R(r1)), [], [])
 
     | X(Scoped_expr(ctx', e1)) ->
@@ -1468,12 +1465,11 @@ admit();
         (b, X(R(Url_value(u))), [], [])
     | Types(t) ->
         (b, X(R(Type_value(t))), [], [])
-
     | Code(e) ->
         (b, X(R(Code_value(e))), [], [])
     | Eval(X(R(Code_value(e1)))) ->
         (b, to_inner_expr e1, [], [])
-
+	
     | Var(x) ->
         begin match get_var x ctx.context_act b with
         | None ->
@@ -1489,13 +1485,17 @@ admit();
     | Apply(X(R(Closure(ctx1, x, locals, e1))), X(R(r2))) ->
         let bot_null x = (x, Null_value) in
         let act = {
-          act_parent = Some(ctx1.context_act);
+          act_parent = Some (ctx1.context_act);
           act_vars = (x, r2) :: map bot_null locals;
         } in
-        let (ar', b') = act_new act b in
-        let ctx2 = { ctx1 with context_act = ar' } in
-        (b', X(Scoped_expr(ctx2, e1)), [], [])
-
+	let a_ref = (if length (b.browser_environments) >= 1 then (fst (last b.browser_environments)) else 0) in
+	let ar = fresh_page_ref (a_ref) in
+	if b_act_ref_pred ar act then 
+           let (ar', b') = act_new act b in
+           let ctx2 = { ctx1 with context_act = ar' } in
+           (b', X(Scoped_expr(ctx2, e1)), [], [])
+	else (b, X(R(Error("Error in closue act_ref_pred"))), [], [])
+	
     | Prim1(prim, X(R(r))) ->
         (b, X(R(prim1 prim r)), [], [])
     | Prim2(prim, X(R(r1)), X(R(r2))) ->
@@ -1602,7 +1602,7 @@ admit();
         end
     | Close_win(X(R(Win_value(wr)))) ->
         let oes =
-          if win_valid wr b then [ UI_win_closed_event(win_to_user_window wr b) ]
+          if win_valid wr b && page_valid (win_assoc_valid wr b).win_page b then [ UI_win_closed_event(win_to_user_window wr b) ]
           else []
         in
         (win_remove wr b, X(R(Null_value)), oes, [])
@@ -1638,10 +1638,12 @@ admit();
             let err = "window was closed---cannot get location" in
             (b, X(R(Error(err))), [], [])
         | Some(w) ->
-            let u =
-              (page_assoc_valid w.win_page b).page_location
+	  if page_valid w.win_page b then 
+            let u = (page_assoc_valid w.win_page b).page_location
             in
             (b, X(R(Url_value(u))), [], [])
+	  else 
+	    (b, X(R(Error("invalid page_ref"))), [], [])
         end
 
     | Get_win_name(X(R(Win_value(wr)))) ->
@@ -1685,12 +1687,15 @@ admit();
             let err = "window was closed---cannot get root node" in
             (b, X(R(Error(err))), [], [])
         | Some(w) ->
+	  if page_valid w.win_page b then 
             begin match (page_assoc_valid w.win_page b).page_document with
             | None ->
                 (b, X(R(Null_value)), [], [])
             | Some(dr) ->
                 (b, X(R(Node_value(dr))), [], [])
             end
+	  else
+	    (b, X(R(Error("invalid page_ref"))), [], [])
         end
 
     | Set_win_root_node(
@@ -1702,12 +1707,15 @@ admit();
             (b, X(R(Error(err))), [], [])
         | Some(w) ->
             let (b', oes1) = node_remove dr b in
-            let p = page_assoc_valid w.win_page b in
-            let p' = { p with page_document = Some(dr) } in
-            let b'' = page_update w.win_page p' b' in
-            let (b''', oes2, ts) = process_node_scripts w.win_page dr b'' in
-            let oes = oes1 @ [ page_update_event w.win_page b''' ] @ oes2 in
-            (b''', X(R(Null_value)), oes, ts)
+	    if page_valid w.win_page b then 
+              let p = page_assoc_valid w.win_page b in
+              let p' = { p with page_document = Some(dr) } in
+              let b'' = page_update w.win_page p' b' in
+              let (b''', oes2, ts) = process_node_scripts w.win_page dr b'' in
+              let oes = oes1 @ [ page_update_event w.win_page b''' ] @ oes2 in
+              (b''', X(R(Null_value)), oes, ts)
+	    else
+	      (b, X(R(Error("invalid page_ref"))), [], [])
         end
 
     | Get_win_var(X(R(Win_value(wr))), x) ->
@@ -1718,6 +1726,7 @@ admit();
             in
             (b, X(R(Error(err))), [], [])
         | Some(w) ->
+	  if page_valid w.win_page b then 
             let ar = (page_assoc_valid w.win_page b).page_environment in
             begin match get_var x ar b with
             | None ->
@@ -1728,7 +1737,10 @@ admit();
             | Some(r) ->
                 (b, X(R(r)), [], [])
             end
+	  else 
+	      (b, X(R(Error("invalid page_ref"))), [], [])	    
         end
+	
     | Set_win_var(X(R(Win_value(wr))), x, X(R(r2))) ->
         begin match win_assoc wr b with
         | None ->
@@ -1738,48 +1750,71 @@ admit();
             in
             (b, X(R(Error(err))), [], [])
         | Some(w) ->
+	  if page_valid w.win_page b then 
             let ar = (page_assoc_valid w.win_page b).page_environment in
-            match set_var x r2 ar b with
+	    begin match set_var x r2 ar b with
             | None -> let err= "variable not found" in 
               (b, X(R(Error(err))), [], [])
             | Some(v) ->
               (v, X(R(Null_value)), [], [])
+	    end 
+	  else
+	      (b, X(R(Error("invalid page_ref"))), [], [])	  
         end
 
+    | _ -> admit()  
+    end
+(*
 
     | New_node(X(R(String_value("para")))) ->
-        let (dr, b') = node_new (Para_node(None, "")) b in
-        (b', X(R(Node_value(dr))), [], [])
+      if node_pred (Para_node(None, "")) b then 
+         let (dr, b') = node_new (Para_node(None, "")) b in
+         (b', X(R(Node_value(dr))), [], [])
+      else (b, X(R(Error("invalid node ref - para"))), [], [])	  
 
+      
     | New_node(X(R(String_value("link")))) ->
+      if node_pred (Link_node(None, Blank_url, "")) b then 
         let (dr, b') = node_new (Link_node(None, Blank_url, "")) b in
         (b', X(R(Node_value(dr))), [], [])
+      else (b, X(R(Error("invalid node ref - link"))), [], [])	  
 
     | New_node(X(R(String_value("textbox")))) ->
+      if node_pred (Textbox_node(None, "", [])) b then 
         let (dr, b') = node_new (Textbox_node(None, "", [])) b in
         (b', X(R(Node_value(dr))), [], [])
+      else (b, X(R(Error("invalid node ref - text"))), [], [])	  
 
     | New_node(X(R(String_value("button")))) ->
+      if node_pred (Button_node(None, "", [])) b then 
         let (dr, b') = node_new (Button_node(None, "", [])) b in
         (b', X(R(Node_value(dr))), [], [])
+      else (b, X(R(Error("invalid node ref - button"))), [], [])	  
 
     | New_node(X(R(String_value("inl_script")))) ->
+      if node_pred (Inl_script_node(None, Null, false)) b then 
         let (dr, b') = node_new (Inl_script_node(None, Null, false)) b in
         (b', X(R(Node_value(dr))), [], [])
+      else (b, X(R(Error("invalid node ref - inl"))), [], [])	  
 
     | New_node(X(R(String_value("rem_script")))) ->
+      if node_pred (Rem_script_node(None, Blank_url, false)) b then 
         let (dr, b') = node_new (Rem_script_node(None, Blank_url, false)) b in
         (b', X(R(Node_value(dr))), [], [])
+      else (b, X(R(Error("invalid node ref - rem"))), [], [])	  
 
     | New_node(X(R(String_value("div")))) ->
+      if node_pred (Div_node(None, [])) b then 
         let (dr, b') = node_new (Div_node(None, [])) b in
         (b', X(R(Node_value(dr))), [], [])
+      else (b, X(R(Error("invalid node ref - div"))), [], [])	  
 
     | New_node(X(R(String_value(_)))) ->
         let err = "expected valid node type string" in
         (b, X(R(Error(err))), [], []) 
 
     | Get_node_type(X(R(Node_value(dr)))) ->
+      if node_valid dr b then 
         begin match node_assoc_valid dr b with
         | Para_node(_, _) ->
             (b, X(R(String_value("para"))), [], [])
@@ -1796,8 +1831,10 @@ admit();
         | Div_node(_, _) ->
             (b, X(R(String_value("div"))), [], [])
         end
-
+      else (b, X(R(Error("invalid node ref"))), [], [])	  
+      
     | Get_node_contents(X(R(Node_value(dr)))) ->
+      if node_valid dr b then 
         begin match node_assoc_valid dr b with
         | Para_node(_, txt) ->
             (b, X(R(String_value(txt))), [], [])
@@ -1811,6 +1848,7 @@ admit();
             let err = "node has no contents" in
             (b, X(R(Error(err))), [], [])
         end
+      else (b, X(R(Error("invalid node ref in get node"))), [], [])	  
 
     | Set_node_attr(
           X(R(Node_value(dr))),

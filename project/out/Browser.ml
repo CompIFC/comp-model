@@ -219,7 +219,8 @@ let rec (to_inner_expr : unit BrowserIO.expr -> inner BrowserIO.expr) =
   fun e ->
     let f = to_inner_expr in
     match e with
-    | BrowserIO.X uu___ -> BrowserIO.Null
+    | BrowserIO.X uu___ ->
+        BrowserIO.X (R (Error "Unreachable case encountered"))
     | BrowserIO.Null -> BrowserIO.Null
     | BrowserIO.Bool b -> BrowserIO.Bool b
     | BrowserIO.Int n -> BrowserIO.Int n
@@ -731,6 +732,16 @@ let (node_update : node_ref -> node -> browser -> browser) =
           browser_cookies = (b.browser_cookies);
           browser_connections = (b.browser_connections)
         }
+let (node_pred : node -> browser -> Prims.bool) =
+  fun dn ->
+    fun b ->
+      let n_ref =
+        if (FStar_List_Tot_Base.length b.browser_nodes) >= Prims.int_one
+        then
+          FStar_Pervasives_Native.fst
+            (FStar_List_Tot_Base.last b.browser_nodes)
+        else Prims.int_zero in
+      let nr = fresh_node_ref n_ref in b_node_ref_pred nr dn
 let (node_new : node -> browser -> (node_ref * browser)) =
   fun dn ->
     fun b ->
@@ -1280,8 +1291,24 @@ let (direct_win :
                else (b, [BrowserIO.UI_error "invalid win_ref or page_ref"]))
           | uu___ -> fetch_url u wr b
         else (b, [BrowserIO.UI_error "invalid win_ref"])
-let rec map' : 'a 'b . 'a Prims.list -> ('a -> 'b) -> 'b Prims.list =
-  fun l -> fun f -> match l with | [] -> [] | h::t -> (f h) :: (map' t f)
+let rec (map' :
+  node_ref ->
+    BrowserIO.doc Prims.list ->
+      (BrowserIO.doc -> node_ref -> (node_ref * (node_ref * node) Prims.list))
+        -> (node_ref * (node_ref * node) Prims.list) Prims.list)
+  =
+  fun nr ->
+    fun l ->
+      fun f ->
+        match l with
+        | [] -> []
+        | h::t ->
+            let uu___ = f h nr in
+            (match uu___ with
+             | (nr', ln) -> (nr', ln) ::
+                 (map'
+                    (nr' + ((FStar_List_Tot_Base.length ln) - Prims.int_one))
+                    t f))
 let rec (build_node_tree :
   BrowserIO.doc -> node_ref -> (node_ref * (node_ref * node) Prims.list)) =
   fun doc ->
@@ -1302,7 +1329,7 @@ let rec (build_node_tree :
       | BrowserIO.Divi (id, subdocs) ->
           let uu___ =
             FStar_List_Tot_Base.split
-              (map' subdocs (fun doc1 -> build_node_tree doc1 dr1)) in
+              (map' dr1 subdocs (fun doc1 -> build_node_tree doc1)) in
           (match uu___ with
            | (drs, nhs) ->
                (dr1, ((dr1, (Div_node (id, drs))) ::
@@ -1651,3 +1678,518 @@ let (rslt_to_elt_it_opt :
     match r with
     | String_value id -> FStar_Pervasives_Native.Some id
     | uu___ -> FStar_Pervasives_Native.None
+let rec (step_expr :
+  context ->
+    browser ->
+      inner BrowserIO.expr ->
+        (browser * inner BrowserIO.expr * BrowserIO.output_event Prims.list *
+          task Prims.list))
+  =
+  fun ctx ->
+    fun b ->
+      fun e ->
+        match e with
+        | BrowserIO.Eval (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Apply (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Prim1 (uu___, BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Prim2 (uu___, BrowserIO.X (R (Error s)), uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Alert (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.If (BrowserIO.X (R (Error s)), uu___, uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_var (uu___, BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Seq (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_cookie (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_cookie (BrowserIO.X (R (Error s)), uu___, uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Xhr (BrowserIO.X (R (Error s)), uu___, uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Named_win (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Open_win (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Open_named_win (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Close_win (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Navigate_win (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Is_win_closed (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_win_opener (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_win_location (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_win_name (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_win_name (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_win_root_node (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_win_root_node (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_win_var (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_win_var (BrowserIO.X (R (Error s)), uu___, uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.New_node (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_node_type (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_node_contents (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_node_contents (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_node_attr (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_node_attr (BrowserIO.X (R (Error s)), uu___, uu___1)
+            -> (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Remove_handlers (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Add_handler (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_parent (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_child (BrowserIO.X (R (Error s)), uu___) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Insert_node (BrowserIO.X (R (Error s)), uu___, uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Remove_node (BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Apply (BrowserIO.X (R uu___), BrowserIO.X (R (Error s)))
+            -> (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Prim2
+            (uu___, BrowserIO.X (R uu___1), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_cookie
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_cookie
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s)), uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Open_named_win
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Navigate_win
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_node_contents
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_node_attr
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_node_attr
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s)), uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_win_name
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_win_root_node
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_win_var
+            (BrowserIO.X (R uu___), uu___1, BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Add_handler
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Get_child
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s))) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Insert_node
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s)), uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Xhr
+            (BrowserIO.X (R uu___), BrowserIO.X (R (Error s)), uu___1) ->
+            (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_cookie
+            (BrowserIO.X (R uu___), BrowserIO.X (R uu___1), BrowserIO.X (R
+             (Error s)))
+            -> (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Xhr
+            (BrowserIO.X (R uu___), BrowserIO.X (R uu___1), BrowserIO.X (R
+             (Error s)))
+            -> (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Set_node_attr
+            (BrowserIO.X (R uu___), BrowserIO.X (R uu___1), BrowserIO.X (R
+             (Error s)))
+            -> (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.Insert_node
+            (BrowserIO.X (R uu___), BrowserIO.X (R uu___1), BrowserIO.X (R
+             (Error s)))
+            -> (b, (BrowserIO.X (R (Error s))), [], [])
+        | BrowserIO.X (R uu___) ->
+            let err = "run-time type error" in
+            (b, (BrowserIO.X (R (Error err))), [], [])
+        | BrowserIO.X (Scoped_expr (uu___, BrowserIO.X (R r1))) ->
+            (b, (BrowserIO.X (R r1)), [], [])
+        | BrowserIO.X (Scoped_expr (ctx', e1)) ->
+            let uu___ = step_expr ctx' b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.X (Scoped_expr (ctx', e1'))), oes, ts))
+        | BrowserIO.Null -> (b, (BrowserIO.X (R Null_value)), [], [])
+        | BrowserIO.Bool bl -> (b, (BrowserIO.X (R (Bool_value bl))), [], [])
+        | BrowserIO.Int n -> (b, (BrowserIO.X (R (Int_value n))), [], [])
+        | BrowserIO.String s ->
+            (b, (BrowserIO.X (R (String_value s))), [], [])
+        | BrowserIO.Url u -> (b, (BrowserIO.X (R (Url_value u))), [], [])
+        | BrowserIO.Types t -> (b, (BrowserIO.X (R (Type_value t))), [], [])
+        | BrowserIO.Code e1 -> (b, (BrowserIO.X (R (Code_value e1))), [], [])
+        | BrowserIO.Eval (BrowserIO.X (R (Code_value e1))) ->
+            (b, (to_inner_expr e1), [], [])
+        | BrowserIO.Var x ->
+            (match get_var x ctx.context_act b with
+             | FStar_Pervasives_Native.None ->
+                 let err =
+                   Prims.strcat "variable " (Prims.strcat x " not found") in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some r ->
+                 (b, (BrowserIO.X (R r)), [], []))
+        | BrowserIO.Function (x, locals, e1) ->
+            (b, (BrowserIO.X (R (Closure (ctx, x, locals, e1)))), [], [])
+        | BrowserIO.Apply
+            (BrowserIO.X (R (Closure (ctx1, x, locals, e1))), BrowserIO.X (R
+             r2))
+            ->
+            let bot_null x1 = (x1, Null_value) in
+            let act1 =
+              {
+                act_parent =
+                  (FStar_Pervasives_Native.Some (ctx1.context_act));
+                act_vars = ((x, r2) ::
+                  (FStar_List_Tot_Base.map bot_null locals))
+              } in
+            let a_ref =
+              if
+                (FStar_List_Tot_Base.length b.browser_environments) >=
+                  Prims.int_one
+              then
+                FStar_Pervasives_Native.fst
+                  (FStar_List_Tot_Base.last b.browser_environments)
+              else Prims.int_zero in
+            let ar = fresh_page_ref a_ref in
+            if b_act_ref_pred ar act1
+            then
+              let uu___ = act_new act1 b in
+              (match uu___ with
+               | (ar', b') ->
+                   let ctx2 =
+                     { context_win = (ctx1.context_win); context_act = ar' } in
+                   (b', (BrowserIO.X (Scoped_expr (ctx2, e1))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "Error in closue act_ref_pred"))),
+                [], [])
+        | BrowserIO.Prim1 (prim, BrowserIO.X (R r)) ->
+            (b, (BrowserIO.X (R (prim1 prim r))), [], [])
+        | BrowserIO.Prim2 (prim, BrowserIO.X (R r1), BrowserIO.X (R r2)) ->
+            (b, (BrowserIO.X (R (prim2 prim r1 r2))), [], [])
+        | BrowserIO.Alert (BrowserIO.X (R (Null_value))) ->
+            (b, (BrowserIO.X (R Null_value)), [BrowserIO.UI_alert "null"],
+              [])
+        | BrowserIO.Alert (BrowserIO.X (R (Bool_value bl))) ->
+            (b, (BrowserIO.X (R Null_value)),
+              [BrowserIO.UI_alert
+                 (Prims.strcat "" (Prims.strcat (Prims.string_of_bool bl) ""))],
+              [])
+        | BrowserIO.Alert (BrowserIO.X (R (Int_value n))) ->
+            (b, (BrowserIO.X (R Null_value)),
+              [BrowserIO.UI_alert
+                 (Prims.strcat "" (Prims.strcat (Prims.string_of_int n) ""))],
+              [])
+        | BrowserIO.Alert (BrowserIO.X (R (String_value s))) ->
+            (b, (BrowserIO.X (R Null_value)), [BrowserIO.UI_alert s], [])
+        | BrowserIO.Alert (BrowserIO.X (R (Url_value uu___))) ->
+            (b, (BrowserIO.X (R Null_value)), [BrowserIO.UI_alert "<URL>"],
+              [])
+        | BrowserIO.Alert (BrowserIO.X (R (Code_value uu___))) ->
+            (b, (BrowserIO.X (R Null_value)), [BrowserIO.UI_alert "<code>"],
+              [])
+        | BrowserIO.Alert (BrowserIO.X (R (Win_value uu___))) ->
+            (b, (BrowserIO.X (R Null_value)),
+              [BrowserIO.UI_alert "<window>"], [])
+        | BrowserIO.Alert (BrowserIO.X (R (Node_value uu___))) ->
+            (b, (BrowserIO.X (R Null_value)), [BrowserIO.UI_alert "<node>"],
+              [])
+        | BrowserIO.Alert (BrowserIO.X (R (Closure
+            (uu___, uu___1, uu___2, uu___3)))) ->
+            (b, (BrowserIO.X (R Null_value)),
+              [BrowserIO.UI_alert "<function>"], [])
+        | BrowserIO.Set_var (x, BrowserIO.X (R r1)) ->
+            let v = set_var x r1 ctx.context_act b in
+            (match v with
+             | FStar_Pervasives_Native.None ->
+                 (b, (BrowserIO.X (R Null_value)),
+                   [BrowserIO.UI_alert
+                      "Error in set_var, context activation recors not valid"],
+                   [])
+             | FStar_Pervasives_Native.Some v1 ->
+                 (v1, (BrowserIO.X (R r1)), [], []))
+        | BrowserIO.If (BrowserIO.X (R (Bool_value (true))), e2, e3) ->
+            (b, e2, [], [])
+        | BrowserIO.If (BrowserIO.X (R (Bool_value (false))), e2, e3) ->
+            (b, e3, [], [])
+        | BrowserIO.While (e1, e2) ->
+            (b,
+              (BrowserIO.If
+                 (e1, (BrowserIO.Seq (e2, (BrowserIO.While (e1, e2)))),
+                   BrowserIO.Null)), [], [])
+        | BrowserIO.Seq (BrowserIO.X (R uu___), e2) -> (b, e2, [], [])
+        | BrowserIO.Get_cookie
+            (BrowserIO.X (R (Url_value (BrowserIO.Http_url (d, uri)))),
+             BrowserIO.X (R (String_value ck)))
+            ->
+            let cs =
+              get_site_cookies d uri.BrowserIO.req_uri_path b.browser_cookies in
+            (match FStar_List_Tot_Base.assoc ck cs with
+             | FStar_Pervasives_Native.None ->
+                 (b, (BrowserIO.X (R Null_value)), [], [])
+             | FStar_Pervasives_Native.Some v ->
+                 (b, (BrowserIO.X (R (String_value v))), [], []))
+        | BrowserIO.Set_cookie
+            (BrowserIO.X (R (Url_value (BrowserIO.Http_url (d, uri)))),
+             BrowserIO.X (R (String_value ck)), BrowserIO.X (R (Null_value)))
+            ->
+            let b' = del_site_cookie d uri.BrowserIO.req_uri_path ck b in
+            (b', (BrowserIO.X (R Null_value)), [], [])
+        | BrowserIO.Set_cookie
+            (BrowserIO.X (R (Url_value (BrowserIO.Http_url (d, uri)))),
+             BrowserIO.X (R (String_value ck)), BrowserIO.X (R (String_value
+             cv)))
+            ->
+            let b' = set_site_cookie d uri.BrowserIO.req_uri_path (ck, cv) b in
+            (b', (BrowserIO.X (R Null_value)), [], [])
+        | BrowserIO.Xhr
+            (BrowserIO.X (R (Url_value (BrowserIO.Blank_url))), BrowserIO.X
+             (R uu___), BrowserIO.X (R uu___1))
+            -> (b, (BrowserIO.X (R Null_value)), [], [])
+        | BrowserIO.Xhr
+            (BrowserIO.X (R (Url_value (BrowserIO.Http_url (d, uri)))),
+             BrowserIO.X (R (String_value msg)), BrowserIO.X (R (Closure c)))
+            ->
+            if win_valid ctx.context_win b
+            then
+              let w = win_assoc_valid ctx.context_win b in
+              let dst1 = Xhr_dst ((w.win_page), (Closure c)) in
+              let uu___ = http_send d uri msg dst1 b in
+              (match uu___ with
+               | (b', oe) -> (b', (BrowserIO.X (R Null_value)), [oe], []))
+            else
+              (let err = "window was closed---cannot make AJAX request" in
+               (b, (BrowserIO.X (R (Error err))), [], []))
+        | BrowserIO.Self_win ->
+            (b, (BrowserIO.X (R (Win_value (ctx.context_win)))), [], [])
+        | BrowserIO.Named_win (BrowserIO.X (R (String_value wn))) ->
+            (match win_from_win_name wn b with
+             | FStar_Pervasives_Native.None ->
+                 (b, (BrowserIO.X (R Null_value)), [], [])
+             | FStar_Pervasives_Native.Some wr ->
+                 (b, (BrowserIO.X (R (Win_value wr))), [], []))
+        | BrowserIO.Open_win (BrowserIO.X (R (Url_value u))) ->
+            let wo = Win_opener (ctx.context_win) in
+            let uu___ = open_win No_name u wo b in
+            (match uu___ with
+             | (wr, b', oes) ->
+                 (b', (BrowserIO.X (R (Win_value wr))), oes, []))
+        | BrowserIO.Open_named_win
+            (BrowserIO.X (R (Url_value u)), BrowserIO.X (R (String_value
+             str)))
+            ->
+            (match win_from_win_name str b with
+             | FStar_Pervasives_Native.None ->
+                 let wo = Win_opener (ctx.context_win) in
+                 let uu___ = open_win (Str_name str) u wo b in
+                 (match uu___ with
+                  | (wr, b', oes) ->
+                      (b', (BrowserIO.X (R (Win_value wr))), oes, []))
+             | FStar_Pervasives_Native.Some wr ->
+                 let uu___ = direct_win wr u b in
+                 (match uu___ with
+                  | (b', oes) ->
+                      (b', (BrowserIO.X (R (Win_value wr))), oes, [])))
+        | BrowserIO.Close_win (BrowserIO.X (R (Win_value wr))) ->
+            let oes =
+              if
+                (win_valid wr b) &&
+                  (page_valid (win_assoc_valid wr b).win_page b)
+              then [BrowserIO.UI_win_closed_event (win_to_user_window wr b)]
+              else [] in
+            ((win_remove wr b), (BrowserIO.X (R Null_value)), oes, [])
+        | BrowserIO.Navigate_win
+            (BrowserIO.X (R (Win_value wr)), BrowserIO.X (R (Url_value url)))
+            ->
+            if win_valid wr b
+            then
+              let uu___ = direct_win wr url b in
+              (match uu___ with
+               | (b', oes) -> (b', (BrowserIO.X (R Null_value)), oes, []))
+            else
+              (let err = "window was closed---cannot set location" in
+               (b, (BrowserIO.X (R (Error err))), [], []))
+        | BrowserIO.Is_win_closed (BrowserIO.X (R (Win_value wr))) ->
+            (b,
+              (BrowserIO.X
+                 (R (Bool_value (Prims.op_Negation (win_valid wr b))))), [],
+              [])
+        | BrowserIO.Get_win_opener (BrowserIO.X (R (Win_value wr))) ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err = "window was closed---cannot get opener" in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 (match w.win_opener with
+                  | No_opener -> (b, (BrowserIO.X (R Null_value)), [], [])
+                  | Win_opener wr' ->
+                      (b, (BrowserIO.X (R (Win_value wr))), [], [])))
+        | BrowserIO.Get_win_location (BrowserIO.X (R (Win_value wr))) ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err = "window was closed---cannot get location" in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 if page_valid w.win_page b
+                 then
+                   let u = (page_assoc_valid w.win_page b).page_location in
+                   (b, (BrowserIO.X (R (Url_value u))), [], [])
+                 else
+                   (b, (BrowserIO.X (R (Error "invalid page_ref"))), [], []))
+        | BrowserIO.Get_win_name (BrowserIO.X (R (Win_value wr))) ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err = "window was closed---cannot get name" in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 (match w.win_name with
+                  | No_name -> (b, (BrowserIO.X (R Null_value)), [], [])
+                  | Str_name str ->
+                      (b, (BrowserIO.X (R (String_value str))), [], [])))
+        | BrowserIO.Set_win_name
+            (BrowserIO.X (R (Win_value wr)), BrowserIO.X (R (Null_value))) ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err = "window was closed---cannot unset name" in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 let w' =
+                   {
+                     win_name = No_name;
+                     win_opener = (w.win_opener);
+                     win_page = (w.win_page)
+                   } in
+                 let b' = win_update wr w' b in
+                 (b', (BrowserIO.X (R Null_value)), [], []))
+        | BrowserIO.Set_win_name
+            (BrowserIO.X (R (Win_value wr)), BrowserIO.X (R (String_value
+             str)))
+            ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err = "window was closed---cannot set name" in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 let w' =
+                   {
+                     win_name = (Str_name str);
+                     win_opener = (w.win_opener);
+                     win_page = (w.win_page)
+                   } in
+                 let b' = win_update wr w' b in
+                 (b', (BrowserIO.X (R Null_value)), [], []))
+        | BrowserIO.Get_win_root_node (BrowserIO.X (R (Win_value wr))) ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err = "window was closed---cannot get root node" in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 if page_valid w.win_page b
+                 then
+                   (match (page_assoc_valid w.win_page b).page_document with
+                    | FStar_Pervasives_Native.None ->
+                        (b, (BrowserIO.X (R Null_value)), [], [])
+                    | FStar_Pervasives_Native.Some dr ->
+                        (b, (BrowserIO.X (R (Node_value dr))), [], []))
+                 else
+                   (b, (BrowserIO.X (R (Error "invalid page_ref"))), [], []))
+        | BrowserIO.Set_win_root_node
+            (BrowserIO.X (R (Win_value wr)), BrowserIO.X (R (Node_value dr)))
+            ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err = "window was closed---cannot set root node" in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 let uu___ = node_remove dr b in
+                 (match uu___ with
+                  | (b', oes1) ->
+                      if page_valid w.win_page b
+                      then
+                        let p = page_assoc_valid w.win_page b in
+                        let p' =
+                          {
+                            page_location = (p.page_location);
+                            page_document = (FStar_Pervasives_Native.Some dr);
+                            page_environment = (p.page_environment);
+                            page_script_queue = (p.page_script_queue)
+                          } in
+                        let b'' = page_update w.win_page p' b' in
+                        let uu___1 = process_node_scripts w.win_page dr b'' in
+                        (match uu___1 with
+                         | (b''', oes2, ts) ->
+                             let oes =
+                               FStar_List_Tot_Base.op_At oes1
+                                 (FStar_List_Tot_Base.op_At
+                                    [page_update_event w.win_page b'''] oes2) in
+                             (b''', (BrowserIO.X (R Null_value)), oes, ts))
+                      else
+                        (b, (BrowserIO.X (R (Error "invalid page_ref"))), [],
+                          [])))
+        | BrowserIO.Get_win_var (BrowserIO.X (R (Win_value wr)), x) ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err =
+                   Prims.strcat "window was closed---cannot get variable "
+                     (Prims.strcat x "") in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 if page_valid w.win_page b
+                 then
+                   let ar = (page_assoc_valid w.win_page b).page_environment in
+                   (match get_var x ar b with
+                    | FStar_Pervasives_Native.None ->
+                        let err =
+                          Prims.strcat "window variable "
+                            (Prims.strcat x " not found") in
+                        (b, (BrowserIO.X (R (Error err))), [], [])
+                    | FStar_Pervasives_Native.Some r ->
+                        (b, (BrowserIO.X (R r)), [], []))
+                 else
+                   (b, (BrowserIO.X (R (Error "invalid page_ref"))), [], []))
+        | BrowserIO.Set_win_var
+            (BrowserIO.X (R (Win_value wr)), x, BrowserIO.X (R r2)) ->
+            (match win_assoc wr b with
+             | FStar_Pervasives_Native.None ->
+                 let err =
+                   Prims.strcat "window was closed---cannot set variable "
+                     (Prims.strcat x "") in
+                 (b, (BrowserIO.X (R (Error err))), [], [])
+             | FStar_Pervasives_Native.Some w ->
+                 if page_valid w.win_page b
+                 then
+                   let ar = (page_assoc_valid w.win_page b).page_environment in
+                   (match set_var x r2 ar b with
+                    | FStar_Pervasives_Native.None ->
+                        let err = "variable not found" in
+                        (b, (BrowserIO.X (R (Error err))), [], [])
+                    | FStar_Pervasives_Native.Some v ->
+                        (v, (BrowserIO.X (R Null_value)), [], []))
+                 else
+                   (b, (BrowserIO.X (R (Error "invalid page_ref"))), [], []))
+        | uu___ -> Prims.admit ()
