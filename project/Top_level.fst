@@ -3,6 +3,7 @@ module Top_level
 open BrowserIO
 open Assumed
 open Browser
+open FStar.List.Tot.Base
 
 (** {3 Top-level browser functionality} *)
 
@@ -56,87 +57,91 @@ open Browser
       running_task_queue = [];
     } in
     (Running(r), oes)
-    else (waiting(b), [])
+    else (Waiting(b), [UI_error "invalid win_ref"])
 
-  // (** Handling a [User_close_win_event]. *)
-  // let handle_close_win_event (wr: win_ref) (b: b)
-  // : state * output_event list =
-  //   assert (win_valid wr b);
-  //   let oe = UI_win_closed_event(win_to_user_window wr b) in
-  //   let w' = { waiting_state = win_remove wr b } in
-  //   (Waiting(w'), [ oe ])
+  (** Handling a [User_close_win_event]. *)
+  let handle_close_win_event (wr: win_ref) (b: browser)
+  : state * list output_event =
+    if (win_valid wr b && page_valid (win_assoc_valid wr b).win_page b) then
+    let oe = UI_win_closed_event(win_to_user_window wr b) in
+    let w' = win_remove wr b  in
+    (Waiting(w'), [ oe ])
+    else (Waiting(b), [UI_error "invalid win_ref"])
 
-  // (** Handling an [User_input_text_event]. *)
-  // let handle_input_text_event (wr: win_ref) (box_pos: int) (str: string) (b: b)
-  // : state * output_event list =                                    
-  //   assert (win_valid wr b);
-  //   begin match textbox_handlers_in_pos wr box_pos b with
-  //   | None ->           
-  //       (Waiting({ waiting_state = b }), [])
-  //   | Some(dr, vs) ->
-  //     let task v = {
-  //         task_win = wr;
-  //         task_expr = Apply(X(R(v)), X(R(Node_value(dr))));
-  //       } in
-  //       let n' =
-  //         begin match node_assoc_valid dr b with
-  //         | Textbox_node(oeid, _, hs) -> Textbox_node(oeid, str, hs)
-  //         | _ -> assert false
-  //         end
-  //       in
-  //       let b' = node_update dr n' b in
-  //       let r = {
-  //         running_state = b';
-  //         running_task_queue = List.map task vs;
-  //       } in
-  //       (Running(r), [])
-  //   end
+  (** Handling an [User_input_text_event]. *)
+  let handle_input_text_event (wr: win_ref) (box_pos: nat) (str: string) (b: browser)
+  : state * list output_event =                                    
+    if (win_valid wr b) then
+    begin match textbox_handlers_in_pos wr box_pos b with
+    | None ->           
+        (Waiting(b), [])
+    | Some(dr, vs) ->
+    if node_valid dr b then
+      let task v = {
+          task_win = wr;
+          task_expr = Apply(X(R(v)), X(R(Node_value(dr))));
+        } in
+        let n' = node_assoc_valid dr b
+        in
+        let b' = node_update dr n' b in
+        let r = {
+          running_state = b';
+          running_task_queue = map task vs;
+        } in
+        (Running(r), [])
+    else (Waiting(b), [UI_error " invalid text event"])
+    end
+    else (Waiting(b), [UI_error "invalid win_ref"])
 
-  // (** Handling a [User_click_button_event]. *)
-  // let handle_click_button_event (wr: win_ref) (but_pos: int) (b: b)
-  // : state * output_event list =
-  //   assert (win_valid wr b);
-  //   begin match button_handlers_in_pos wr but_pos b with
-  //   | None -> (Waiting({ waiting_state = b }), [])
-  //   | Some(dr, vs) ->
-  //       let task v = {
-  //         task_win = wr;
-  //         task_expr = Apply(X(R(v)), X(R(Node_value(dr))));
-  //       } in
-  //       let r = {
-  //         running_state = b;
-  //         running_task_queue = List.map task vs;
-  //       } in
-  //       (Running(r), [])
-  //   end
+  (** Handling a [User_click_button_event]. *)
+  let handle_click_button_event (wr: win_ref) (but_pos: nat) (b: browser)
+  : state * list output_event=
+    if (win_valid wr b) then
+    begin match button_handlers_in_pos wr but_pos b with
+    | None -> (Waiting(b), [])
+    | Some(dr, vs) ->
+        let task v = {
+          task_win = wr;
+          task_expr = Apply(X(R(v)), X(R(Node_value(dr))));
+        } in
+        let r = {
+          running_state = b;
+          running_task_queue = map task vs;
+        } in
+        (Running(r), [])
+    end
+    else (Waiting(b), [UI_error "invalid win_ref"])
 
-  // (** Return the known expressions at the head of the script queue for the page
-  //     in the window referenced by [wr] as browser tasks, and remove them from
-  //     the page's script queue. *)
-  // let get_ready_exprs (wr: win_ref) (b: b)
-  // : task list * b =
-  //   assert (win_valid wr b);
-  //   let task e = {
-  //     task_win = wr;
-  //     task_expr = e;
-  //   } in
-  //   let w = win_assoc_valid wr b in
-  //   let p = page_assoc_valid w.win_page b in
-  //   let (pes_ready, pes') = split_queued_exprs p.page_script_queue in
-  //   let p' = {
-  //     p with
-  //     page_script_queue = pes';
-  //   } in
-  //   let b' = page_update w.win_page p' b in
-  //   (List.map task pes_ready, b')
+  (** Return the known expressions at the head of the script queue for the page
+      in the window referenced by [wr] as browser tasks, and remove them from
+      the page's script queue. *)
+  let get_ready_exprs (wr: win_ref) (b: browser)
+  : list task * browser =
+    if (win_valid wr b && page_valid (win_assoc_valid wr b).win_page b) then
+    let task e = {
+      task_win = wr;
+      task_expr = e;
+    } in
+    let w = win_assoc_valid wr b in
+    let p = page_assoc_valid w.win_page b in
+    let (pes_ready, pes') = split_queued_exprs p.page_script_queue in
+    let p' = {
+      p with
+      page_script_queue = pes';
+    } in
+    let b' = page_update w.win_page p' b in
+    (map task pes_ready, b')
+    else 
+    ([],b)
+
 
   // (** Handling a [Network_response_event]. *)
   // let handle_network_response_event
-  //   (Net_connection(d, n): net_connection) (resp: resp) (b: b)
-  // : state * output_event list =
+  //   (Net_connection(d, n): net_connection) (resp: resp) (b: browser)
+  // : state * list output_event =
   //   begin match net_connection_domain_nth d n b with
   //   | None ->
-  //       (Waiting({ waiting_state = b }), [])
+  //       (Waiting(b), [])
   //   | Some((uri, dst)) ->
   //       let b' = net_connection_domain_remove_nth d n b in
   //       let b'1 = upd_cookies d uri resp b' in

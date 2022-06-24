@@ -1079,7 +1079,7 @@ let rec render_doc_as_list (b: b_nodes) (dr: node_ref)
   | [] -> []
   | h::t -> let (nr', ln) = f h nr in
 	  (nr', ln) :: (map' (nr' + (length ln - 1)) t f)
-    
+
   let rec build_node_tree (doc: doc)(dr:node_ref)
   : (l':(node_ref * list (node_ref * node)){let (r, l) = l' in length l >= 1}) =
     let dr = dr+1 in

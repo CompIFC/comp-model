@@ -1,5 +1,5 @@
 [
-  "™PØAœ8j–\bðØ\u0017¿Ž_‡",
+  "\u0019Ç^ÍÀ\u0007¹DÝËq\u0006àI%\u001d",
   [
     [
       "Top_level.running",
@@ -12,7 +12,7 @@
         "assumption_Prims.list__uu___haseq", "kinding_Browser.task@tok"
       ],
       0,
-      "e3d5b19d1ef07d7270662a05f256e7e8"
+      "46b137a7009386ec6f2ca6f7c78e61ce"
     ],
     [
       "Top_level.state",
@@ -25,7 +25,7 @@
         "equation_Top_level.waiting"
       ],
       0,
-      "e989b1be9deaa0b11a3b97138cd183a0"
+      "983a7d761a60186ab31c4f1778f12f97"
     ],
     [
       "Top_level.__proj__Waiting__item___0",
@@ -37,7 +37,7 @@
         "refinement_interpretation_Tm_refine_4785e46bbc3d74521170d79bde30ad95"
       ],
       0,
-      "c7311a04ec2a8f81bc19098573fd84c8"
+      "b36a1b95ff3beb7b36492061320e9f72"
     ],
     [
       "Top_level.__proj__Running__item___0",
@@ -49,7 +49,7 @@
         "refinement_interpretation_Tm_refine_71b57c25b1c7497dce2b5aa863afa8ca"
       ],
       0,
-      "c7368ac68ead5f567a3036aef56fca91"
+      "d1b99ebced7466628408046c20fc672b"
     ],
     [
       "Top_level.start",
@@ -72,7 +72,119 @@
         "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "2b1a79f7ac50fa86bdd77c339aab8ebc"
+      "4c1b40a4258c5569fd168fab08d0153e"
+    ],
+    [
+      "Top_level.handle_close_win_event",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@fuel_correspondence_FStar.List.Tot.Base.assoc.fuel_instrumented",
+        "@query", "bool_inversion", "data_elim_Browser.Mkbrowser",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "equation_Browser.b_env", "equation_Browser.win_ref",
+        "equation_Browser.win_valid", "equation_Prims.eqtype",
+        "equation_Prims.nat", "fuel_guarded_inversion_Browser.browser",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "kinding_Browser.win@tok", "lemma_FStar.Pervasives.invertOption",
+        "primitive_Prims.op_AmpAmp", "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_e556a1d7a621448e48e0c8de4d09beca",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.__proj__Mkbrowser__item__browser_windows",
+        "typing_Browser.b_env_pred", "typing_Browser.win_valid",
+        "typing_FStar.List.Tot.Base.assoc"
+      ],
+      0,
+      "ca7e6282e3e6054f41e032ba6fc3a598"
+    ],
+    [
+      "Top_level.handle_input_text_event",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "Browser_pretyping_3b0358d1d2b144c9b6eb8dac01515fe9",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "equality_tok_Browser.Null_value@tok", "equation_Browser.node_ref",
+        "equation_Browser.textbox_handlers_in_pos",
+        "equation_Browser.win_ref", "equation_Prims.nat",
+        "fuel_guarded_inversion_Browser.browser", "int_inversion",
+        "kinding_Browser.value@tok",
+        "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "kinding_Prims.list@tok", "lemma_FStar.Pervasives.invertOption",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.textbox_handlers_in_pos",
+        "typing_tok_Browser.Null_value@tok"
+      ],
+      0,
+      "a92b2fcee5ef9082ea9dd5e2352a3a0e"
+    ],
+    [
+      "Top_level.handle_click_button_event",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "equation_Browser.button_handlers_in_pos",
+        "equation_Browser.node_ref", "equation_Prims.nat",
+        "kinding_Browser.value@tok",
+        "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "kinding_Prims.list@tok", "lemma_FStar.Pervasives.invertOption",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.button_handlers_in_pos"
+      ],
+      0,
+      "d285602b5516a5b79c34b471884fb4d9"
+    ],
+    [
+      "Top_level.get_ready_exprs",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@fuel_correspondence_FStar.List.Tot.Base.assoc.fuel_instrumented",
+        "@query", "bool_inversion", "data_elim_Browser.Mkbrowser",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "equation_Browser.b_env", "equation_Browser.page_ref",
+        "equation_Browser.page_valid", "equation_Browser.win_ref",
+        "equation_Browser.win_valid", "equation_Prims.eqtype",
+        "equation_Prims.nat", "fuel_guarded_inversion_Browser.browser",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "kinding_Browser.page@tok", "kinding_Browser.win@tok",
+        "lemma_FStar.Pervasives.invertOption", "primitive_Prims.op_AmpAmp",
+        "proj_equation_Browser.Mkwin_win_page",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_interpretation_Tm_refine_e556a1d7a621448e48e0c8de4d09beca",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.__proj__Mkbrowser__item__browser_pages",
+        "typing_Browser.__proj__Mkbrowser__item__browser_windows",
+        "typing_Browser.__proj__Mkwin__item__win_page",
+        "typing_Browser.b_env_pred", "typing_Browser.page_valid",
+        "typing_Browser.win_valid", "typing_FStar.List.Tot.Base.assoc",
+        "typing_FStar.Pervasives.Native.uu___is_Some"
+      ],
+      0,
+      "536f76abe6baf05c56d1a65ad8557668"
     ]
   ]
 ]
