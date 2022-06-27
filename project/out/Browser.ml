@@ -2192,4 +2192,587 @@ let rec (step_expr :
                         (v, (BrowserIO.X (R Null_value)), [], []))
                  else
                    (b, (BrowserIO.X (R (Error "invalid page_ref"))), [], []))
-        | uu___ -> Prims.admit ()
+        | BrowserIO.New_node (BrowserIO.X (R (String_value "para"))) ->
+            if node_pred (Para_node (FStar_Pervasives_Native.None, "")) b
+            then
+              let uu___ =
+                node_new (Para_node (FStar_Pervasives_Native.None, "")) b in
+              (match uu___ with
+               | (dr, b') -> (b', (BrowserIO.X (R (Node_value dr))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref - para"))), [],
+                [])
+        | BrowserIO.New_node (BrowserIO.X (R (String_value "link"))) ->
+            if
+              node_pred
+                (Link_node
+                   (FStar_Pervasives_Native.None, BrowserIO.Blank_url, "")) b
+            then
+              let uu___ =
+                node_new
+                  (Link_node
+                     (FStar_Pervasives_Native.None, BrowserIO.Blank_url, ""))
+                  b in
+              (match uu___ with
+               | (dr, b') -> (b', (BrowserIO.X (R (Node_value dr))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref - link"))), [],
+                [])
+        | BrowserIO.New_node (BrowserIO.X (R (String_value "textbox"))) ->
+            if
+              node_pred (Textbox_node (FStar_Pervasives_Native.None, "", []))
+                b
+            then
+              let uu___ =
+                node_new
+                  (Textbox_node (FStar_Pervasives_Native.None, "", [])) b in
+              (match uu___ with
+               | (dr, b') -> (b', (BrowserIO.X (R (Node_value dr))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref - text"))), [],
+                [])
+        | BrowserIO.New_node (BrowserIO.X (R (String_value "button"))) ->
+            if
+              node_pred (Button_node (FStar_Pervasives_Native.None, "", []))
+                b
+            then
+              let uu___ =
+                node_new (Button_node (FStar_Pervasives_Native.None, "", []))
+                  b in
+              (match uu___ with
+               | (dr, b') -> (b', (BrowserIO.X (R (Node_value dr))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref - button"))), [],
+                [])
+        | BrowserIO.New_node (BrowserIO.X (R (String_value "inl_script"))) ->
+            if
+              node_pred
+                (Inl_script_node
+                   (FStar_Pervasives_Native.None, BrowserIO.Null, false)) b
+            then
+              let uu___ =
+                node_new
+                  (Inl_script_node
+                     (FStar_Pervasives_Native.None, BrowserIO.Null, false)) b in
+              (match uu___ with
+               | (dr, b') -> (b', (BrowserIO.X (R (Node_value dr))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref - inl"))), [], [])
+        | BrowserIO.New_node (BrowserIO.X (R (String_value "rem_script"))) ->
+            if
+              node_pred
+                (Rem_script_node
+                   (FStar_Pervasives_Native.None, BrowserIO.Blank_url, false))
+                b
+            then
+              let uu___ =
+                node_new
+                  (Rem_script_node
+                     (FStar_Pervasives_Native.None, BrowserIO.Blank_url,
+                       false)) b in
+              (match uu___ with
+               | (dr, b') -> (b', (BrowserIO.X (R (Node_value dr))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref - rem"))), [], [])
+        | BrowserIO.New_node (BrowserIO.X (R (String_value "div"))) ->
+            if node_pred (Div_node (FStar_Pervasives_Native.None, [])) b
+            then
+              let uu___ =
+                node_new (Div_node (FStar_Pervasives_Native.None, [])) b in
+              (match uu___ with
+               | (dr, b') -> (b', (BrowserIO.X (R (Node_value dr))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref - div"))), [], [])
+        | BrowserIO.New_node (BrowserIO.X (R (String_value uu___))) ->
+            let err = "expected valid node type string" in
+            (b, (BrowserIO.X (R (Error err))), [], [])
+        | BrowserIO.Get_node_type (BrowserIO.X (R (Node_value dr))) ->
+            if node_valid dr b
+            then
+              (match node_assoc_valid dr b with
+               | Para_node (uu___, uu___1) ->
+                   (b, (BrowserIO.X (R (String_value "para"))), [], [])
+               | Link_node (uu___, uu___1, uu___2) ->
+                   (b, (BrowserIO.X (R (String_value "link"))), [], [])
+               | Textbox_node (uu___, uu___1, uu___2) ->
+                   (b, (BrowserIO.X (R (String_value "textbox"))), [], [])
+               | Button_node (uu___, uu___1, uu___2) ->
+                   (b, (BrowserIO.X (R (String_value "button"))), [], [])
+               | Inl_script_node (uu___, uu___1, uu___2) ->
+                   (b, (BrowserIO.X (R (String_value "inl_script"))), [], [])
+               | Rem_script_node (uu___, uu___1, uu___2) ->
+                   (b, (BrowserIO.X (R (String_value "rem_script"))), [], [])
+               | Div_node (uu___, uu___1) ->
+                   (b, (BrowserIO.X (R (String_value "div"))), [], []))
+            else (b, (BrowserIO.X (R (Error "invalid node ref"))), [], [])
+        | BrowserIO.Get_node_contents (BrowserIO.X (R (Node_value dr))) ->
+            if node_valid dr b
+            then
+              (match node_assoc_valid dr b with
+               | Para_node (uu___, txt) ->
+                   (b, (BrowserIO.X (R (String_value txt))), [], [])
+               | Link_node (uu___, uu___1, txt) ->
+                   (b, (BrowserIO.X (R (String_value txt))), [], [])
+               | Button_node (uu___, txt, uu___1) ->
+                   (b, (BrowserIO.X (R (String_value txt))), [], [])
+               | Inl_script_node (uu___, e1, uu___1) ->
+                   (b, (BrowserIO.X (R (Code_value e1))), [], [])
+               | uu___ ->
+                   let err = "node has no contents" in
+                   (b, (BrowserIO.X (R (Error err))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref in get node"))),
+                [], [])
+        | BrowserIO.Set_node_attr
+            (BrowserIO.X (R (Node_value dr)), BrowserIO.X (R (String_value
+             "value")), BrowserIO.X (R (String_value s)))
+            ->
+            if node_valid dr b
+            then
+              (match node_assoc_valid dr b with
+               | Textbox_node (oeid, uu___, handlers) ->
+                   let b' =
+                     node_update dr (Textbox_node (oeid, s, handlers)) b in
+                   let oes =
+                     match node_page dr b' with
+                     | FStar_Pervasives_Native.None -> []
+                     | FStar_Pervasives_Native.Some pr ->
+                         [page_update_event pr b'] in
+                   (b', (BrowserIO.X (R (String_value s))), oes, [])
+               | uu___ ->
+                   let err = "node has no 'value' attribute" in
+                   (b, (BrowserIO.X (R (Error err))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref in set node"))),
+                [], [])
+        | BrowserIO.Get_node_attr
+            (BrowserIO.X (R (Node_value dr)), BrowserIO.X (R (String_value
+             "src")))
+            ->
+            if node_valid dr b
+            then
+              (match node_assoc_valid dr b with
+               | Rem_script_node (uu___, u, uu___1) ->
+                   (b, (BrowserIO.X (R (Url_value u))), [], [])
+               | uu___ ->
+                   let err = "node has no 'src' attribute" in
+                   (b, (BrowserIO.X (R (Error err))), [], []))
+            else
+              (b,
+                (BrowserIO.X (R (Error "invalid node ref in get node attr"))),
+                [], [])
+        | BrowserIO.Set_node_attr
+            (BrowserIO.X (R (Node_value dr)), BrowserIO.X (R (String_value
+             "src")), BrowserIO.X (R (Url_value u)))
+            ->
+            if node_valid dr b
+            then
+              (match node_assoc_valid dr b with
+               | Rem_script_node (oeid, uu___, flag) ->
+                   let b' =
+                     node_update dr (Rem_script_node (oeid, u, flag)) b in
+                   (b', (BrowserIO.X (R (Url_value u))), [], [])
+               | uu___ ->
+                   let err = "node has no 'src' attribute" in
+                   (b, (BrowserIO.X (R (Error err))), [], []))
+            else
+              (b,
+                (BrowserIO.X (R (Error "invalid node ref in set node attr"))),
+                [], [])
+        | BrowserIO.Remove_handlers (BrowserIO.X (R (Node_value dr))) ->
+            if node_valid dr b
+            then
+              (match node_assoc_valid dr b with
+               | Textbox_node (id, s, uu___) ->
+                   let dn' = Textbox_node (id, s, []) in
+                   let b' = node_update dr dn' b in
+                   (b', (BrowserIO.X (R Null_value)), [], [])
+               | Button_node (id, s, uu___) ->
+                   let dn' = Button_node (id, s, []) in
+                   let b' = node_update dr dn' b in
+                   (b', (BrowserIO.X (R Null_value)), [], [])
+               | uu___ ->
+                   let err = "expected textbox or button node" in
+                   (b, (BrowserIO.X (R (Error err))), [], []))
+            else
+              (b,
+                (BrowserIO.X
+                   (R (Error "invalid node ref in remove handlers"))), [],
+                [])
+        | BrowserIO.Add_handler
+            (BrowserIO.X (R (Node_value dr)), BrowserIO.X (R (Closure c))) ->
+            if node_valid dr b
+            then
+              (match node_assoc_valid dr b with
+               | Textbox_node (oeid, str, hs) ->
+                   let b' =
+                     node_update dr
+                       (Textbox_node (oeid, str, ((Closure c) :: hs))) b in
+                   (b', (BrowserIO.X (R Null_value)), [], [])
+               | Button_node (oeid, str, hs) ->
+                   let b' =
+                     node_update dr
+                       (Button_node (oeid, str, ((Closure c) :: hs))) b in
+                   (b', (BrowserIO.X (R Null_value)), [], [])
+               | uu___ ->
+                   let err = "expected textbox or button node" in
+                   (b, (BrowserIO.X (R (Error err))), [], []))
+            else
+              (b,
+                (BrowserIO.X (R (Error "invalid node ref in add handler"))),
+                [], [])
+        | BrowserIO.Get_parent (BrowserIO.X (R (Node_value dr))) ->
+            (match node_parent dr b with
+             | Parent_node parent ->
+                 (b, (BrowserIO.X (R (Node_value parent))), [], [])
+             | uu___ -> (b, (BrowserIO.X (R Null_value)), [], []))
+        | BrowserIO.Get_child
+            (BrowserIO.X (R (Node_value dr)), BrowserIO.X (R (Int_value i)))
+            ->
+            if node_valid dr b
+            then
+              (match node_assoc_valid dr b with
+               | Div_node (uu___, drs) ->
+                   if i < Prims.int_zero
+                   then (b, (BrowserIO.X (R Null_value)), [], [])
+                   else
+                     (match FStar_List_Tot_Base.nth drs i with
+                      | FStar_Pervasives_Native.None ->
+                          (b, (BrowserIO.X (R Null_value)), [], [])
+                      | FStar_Pervasives_Native.Some v ->
+                          (b, (BrowserIO.X (R (Node_value v))), [], []))
+               | uu___ ->
+                   let err = "expected div node" in
+                   (b, (BrowserIO.X (R (Error err))), [], []))
+            else
+              (b, (BrowserIO.X (R (Error "invalid node ref in get child"))),
+                [], [])
+        | BrowserIO.Insert_node
+            (BrowserIO.X (R (Node_value dr1)), BrowserIO.X (R (Node_value
+             dr2)), BrowserIO.X (R (Int_value k)))
+            ->
+            let uu___ = node_insert dr1 dr2 k b in
+            (match uu___ with
+             | (b', oes, ts) ->
+                 (match (b', oes, ts) with
+                  | (b1, [], []) ->
+                      let err =
+                        "(parent node not a div node or a descendant of child) \n            or (div node has too few children) " in
+                      (b1, (BrowserIO.X (R (Error err))), [], [])
+                  | uu___1 -> (b', (BrowserIO.X (R Null_value)), oes, ts)))
+        | BrowserIO.Remove_node (BrowserIO.X (R (Node_value dr))) ->
+            let uu___ = node_remove dr b in
+            (match uu___ with
+             | (b', oes) -> (b', (BrowserIO.X (R Null_value)), oes, []))
+        | BrowserIO.Eval e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) -> (b, (BrowserIO.Eval e1'), oes, ts))
+        | BrowserIO.Apply (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Apply ((BrowserIO.X (R e1)), e2')), oes, ts))
+        | BrowserIO.Apply (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Apply (e1', e2)), oes, ts))
+        | BrowserIO.Prim1 (prim, e1) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Prim1 (prim, e1')), oes, ts))
+        | BrowserIO.Prim2 (prim, BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Prim2 (prim, (BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Prim2 (prim, e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Prim2 (prim, e1', e2)), oes, ts))
+        | BrowserIO.Alert e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) -> (b', (BrowserIO.Alert e1'), oes, ts))
+        | BrowserIO.If (e1, e2, e3) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.If (e1', e2, e3)), oes, ts))
+        | BrowserIO.Set_var (x, e1) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Set_var (x, e1')), oes, ts))
+        | BrowserIO.Seq (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) -> (b', (BrowserIO.Seq (e1', e2)), oes, ts))
+        | BrowserIO.Get_cookie (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Get_cookie ((BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Get_cookie (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_cookie (e1', e2)), oes, ts))
+        | BrowserIO.Set_cookie (BrowserIO.X (R e1), BrowserIO.X (R e2), e3)
+            ->
+            let uu___ = step_expr ctx b e3 in
+            (match uu___ with
+             | (b', e3', oes, ts) ->
+                 (b',
+                   (BrowserIO.Set_cookie
+                      ((BrowserIO.X (R e1)), (BrowserIO.X (R e2)), e3')),
+                   oes, ts))
+        | BrowserIO.Set_cookie (BrowserIO.X (R e1), e2, e3) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Set_cookie ((BrowserIO.X (R e1)), e2', e3)),
+                   oes, ts))
+        | BrowserIO.Set_cookie (e1, e2, e3) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Set_cookie (e1', e2, e3)), oes, ts))
+        | BrowserIO.Xhr (BrowserIO.X (R e1), BrowserIO.X (R e2), e3) ->
+            let uu___ = step_expr ctx b e3 in
+            (match uu___ with
+             | (b', e3', oes, ts) ->
+                 (b',
+                   (BrowserIO.Xhr
+                      ((BrowserIO.X (R e1)), (BrowserIO.X (R e2)), e3')),
+                   oes, ts))
+        | BrowserIO.Xhr (BrowserIO.X (R e1), e2, e3) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Xhr ((BrowserIO.X (R e1)), e2', e3)), oes,
+                   ts))
+        | BrowserIO.Xhr (e1, e2, e3) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Xhr (e1', e2, e3)), oes, ts))
+        | BrowserIO.Named_win e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) -> (b', (BrowserIO.Named_win e1'), oes, ts))
+        | BrowserIO.Open_win e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) -> (b', (BrowserIO.Open_win e1'), oes, ts))
+        | BrowserIO.Open_named_win (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Open_named_win ((BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Open_named_win (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Open_named_win (e1', e2)), oes, ts))
+        | BrowserIO.Close_win e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) -> (b', (BrowserIO.Close_win e1'), oes, ts))
+        | BrowserIO.Navigate_win (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Navigate_win ((BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Navigate_win (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Navigate_win (e1', e2)), oes, ts))
+        | BrowserIO.Is_win_closed e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Is_win_closed e1'), oes, ts))
+        | BrowserIO.Get_win_opener e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_win_opener e1'), oes, ts))
+        | BrowserIO.Get_win_location e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_win_location e1'), oes, ts))
+        | BrowserIO.Get_win_name e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_win_name e1'), oes, ts))
+        | BrowserIO.Set_win_name (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Set_win_name ((BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Set_win_name (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Set_win_name (e1', e2)), oes, ts))
+        | BrowserIO.Get_win_root_node e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_win_root_node e1'), oes, ts))
+        | BrowserIO.Set_win_root_node (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b',
+                   (BrowserIO.Set_win_root_node ((BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Set_win_root_node (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Set_win_root_node (e1', e2)), oes, ts))
+        | BrowserIO.Get_win_var (e1, x) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_win_var (e1', x)), oes, ts))
+        | BrowserIO.Set_win_var (BrowserIO.X (R e1), x, e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Set_win_var ((BrowserIO.X (R e1)), x, e2')),
+                   oes, ts))
+        | BrowserIO.Set_win_var (e1, x, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Set_win_var (e1', x, e2)), oes, ts))
+        | BrowserIO.New_node e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) -> (b', (BrowserIO.New_node e1'), oes, ts))
+        | BrowserIO.Get_node_type e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_node_type e1'), oes, ts))
+        | BrowserIO.Get_node_contents e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_node_contents e1'), oes, ts))
+        | BrowserIO.Set_node_contents (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b',
+                   (BrowserIO.Set_node_contents ((BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Set_node_contents (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Set_node_contents (e1', e2)), oes, ts))
+        | BrowserIO.Get_node_attr (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Get_node_attr ((BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Get_node_attr (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_node_attr (e1', e2)), oes, ts))
+        | BrowserIO.Set_node_attr
+            (BrowserIO.X (R e1), BrowserIO.X (R e2), e3) ->
+            let uu___ = step_expr ctx b e3 in
+            (match uu___ with
+             | (b', e3', oes, ts) ->
+                 (b',
+                   (BrowserIO.Set_node_attr
+                      ((BrowserIO.X (R e1)), (BrowserIO.X (R e2)), e3')),
+                   oes, ts))
+        | BrowserIO.Set_node_attr (BrowserIO.X (R e1), e2, e3) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b',
+                   (BrowserIO.Set_node_attr ((BrowserIO.X (R e1)), e2', e3)),
+                   oes, ts))
+        | BrowserIO.Set_node_attr (e1, e2, e3) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Set_node_attr (e1', e2, e3)), oes, ts))
+        | BrowserIO.Remove_handlers e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Remove_handlers e1'), oes, ts))
+        | BrowserIO.Add_handler (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Add_handler ((BrowserIO.X (R e1)), e2')),
+                   oes, ts))
+        | BrowserIO.Add_handler (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Add_handler (e1', e2)), oes, ts))
+        | BrowserIO.Get_child (BrowserIO.X (R e1), e2) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b', (BrowserIO.Get_child ((BrowserIO.X (R e1)), e2')), oes,
+                   ts))
+        | BrowserIO.Get_parent e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_parent e1'), oes, ts))
+        | BrowserIO.Get_child (e1, e2) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Get_child (e1', e2)), oes, ts))
+        | BrowserIO.Insert_node (BrowserIO.X (R e1), BrowserIO.X (R e2), e3)
+            ->
+            let uu___ = step_expr ctx b e3 in
+            (match uu___ with
+             | (b', e3', oes, ts) ->
+                 (b',
+                   (BrowserIO.Insert_node
+                      ((BrowserIO.X (R e1)), (BrowserIO.X (R e2)), e3')),
+                   oes, ts))
+        | BrowserIO.Insert_node (BrowserIO.X (R e1), e2, e3) ->
+            let uu___ = step_expr ctx b e2 in
+            (match uu___ with
+             | (b', e2', oes, ts) ->
+                 (b',
+                   (BrowserIO.Insert_node ((BrowserIO.X (R e1)), e2', e3)),
+                   oes, ts))
+        | BrowserIO.Insert_node (e1, e2, e3) ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Insert_node (e1', e2, e3)), oes, ts))
+        | BrowserIO.Remove_node e1 ->
+            let uu___ = step_expr ctx b e1 in
+            (match uu___ with
+             | (b', e1', oes, ts) ->
+                 (b', (BrowserIO.Remove_node e1'), oes, ts))

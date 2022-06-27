@@ -1368,7 +1368,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
   (**/**)
 
 
-
+#push-options "--z3rlimit 100"
 (** Carries out a single step of executing a script expression. *)
  let rec step_expr (ctx: context) (b: browser) (e: expr inner)
   : Tot (browser * expr inner * list output_event * list task) (decreases e)  =
@@ -1762,16 +1762,11 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
 	      (b, X(R(Error("invalid page_ref"))), [], [])	  
         end
 
-    | _ -> admit()  
-    end
-(*
-
     | New_node(X(R(String_value("para")))) ->
       if node_pred (Para_node(None, "")) b then 
          let (dr, b') = node_new (Para_node(None, "")) b in
          (b', X(R(Node_value(dr))), [], [])
       else (b, X(R(Error("invalid node ref - para"))), [], [])	  
-
       
     | New_node(X(R(String_value("link")))) ->
       if node_pred (Link_node(None, Blank_url, "")) b then 
@@ -1854,6 +1849,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
           X(R(Node_value(dr))),
           X(R(String_value("value"))),
           X(R(String_value(s)))) ->
+      if node_valid dr b then 
         begin match node_assoc_valid dr b with
         | Textbox_node(oeid, _, handlers) ->
             let b' = node_update dr (Textbox_node(oeid, s, handlers)) b in
@@ -1868,8 +1864,10 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
             let err = "node has no 'value' attribute" in
             (b, X(R(Error(err))), [], [])
         end
+      else (b, X(R(Error("invalid node ref in set node"))), [], [])
 
     | Get_node_attr(X(R(Node_value(dr))), X(R(String_value("src")))) ->
+      if node_valid dr b then 
         begin match node_assoc_valid dr b with
         | Rem_script_node(_, u, _) ->
             (b, X(R(Url_value(u))), [], [])
@@ -1877,11 +1875,13 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
             let err = "node has no 'src' attribute" in
             (b, X(R(Error(err))), [], [])
         end
+      else (b, X(R(Error("invalid node ref in get node attr"))), [], [])
 
     | Set_node_attr(
           X(R(Node_value(dr))),
           X(R(String_value("src"))),
           X(R(Url_value(u)))) ->
+      if node_valid dr b then 
         begin match node_assoc_valid dr b with
         | Rem_script_node(oeid, _, flag) ->
             let b' = node_update dr (Rem_script_node(oeid, u, flag)) b in
@@ -1890,8 +1890,10 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
             let err = "node has no 'src' attribute" in
             (b, X(R(Error(err))), [], [])
         end
+      else (b, X(R(Error("invalid node ref in set node attr"))), [], [])
 
     | Remove_handlers(X(R(Node_value(dr)))) ->
+      if node_valid dr b then 
         begin match node_assoc_valid dr b with
         | Textbox_node(id, s, _) ->
             let dn' = Textbox_node(id, s, []) in
@@ -1905,8 +1907,10 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
             let err = "expected textbox or button node" in
             (b, X(R(Error(err))), [], [])
         end
+      else (b, X(R(Error("invalid node ref in remove handlers"))), [], [])
 
     | Add_handler(X(R(Node_value(dr))), X(R(Closure c))) ->
+      if node_valid dr b then 
         begin match node_assoc_valid dr b with
         | Textbox_node(oeid, str, hs) ->
             let b' = node_update dr (Textbox_node(oeid, str, Closure c :: hs)) b in
@@ -1918,6 +1922,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
             let err = "expected textbox or button node" in
             (b, X(R(Error(err))), [], [])
         end
+      else (b, X(R(Error("invalid node ref in add handler"))), [], [])
 
     | Get_parent(X(R(Node_value(dr)))) ->
         begin match node_parent dr b with
@@ -1928,8 +1933,12 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
         end
 
     | Get_child(X(R(Node_value(dr))), X(R(Int_value(i)))) ->
+      if node_valid dr b then 
         begin match node_assoc_valid dr b with
         | Div_node(_, drs) ->
+	  if i < 0 then 
+	    (b, X(R(Null_value)), [], [])
+	  else
             begin match (nth drs i) with 
             | None ->
               (b, X(R(Null_value)), [], [])
@@ -1940,6 +1949,7 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
             let err = "expected div node" in
             (b, X(R(Error(err))), [], [])
         end
+      else (b, X(R(Error("invalid node ref in get child"))), [], [])
 
     | Insert_node(
           X(R(Node_value(dr1))),
@@ -2132,3 +2142,4 @@ let rec process_node_scripts_aux (pr: page_ref) (dr: node_ref) (bn: b_nodes) (bc
         let (b', e1', oes, ts) = step_expr ctx b e1 in
         (b', Remove_node(e1'), oes, ts)
 end
+#pop-options
