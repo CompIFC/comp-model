@@ -323,11 +323,13 @@ type response=
 
 | Script_response: cookie_updates -> expr False -> response
 
-type net_connection=
-| Connection: domain -> nat -> net_connection
+(** A type for identifying a unique network connection.  The integer 0
+    represents the most recent connection to a given domain, 1 represents the
+    next-most-recent, and so on. *)
+type net_connection = domain * nat
 
-type network_input=
-| Receive: net_connection  -> response -> network_input
+// type network_input=
+// | Receive: net_connection  -> response -> network_input
 
 // user IO syntax
 (* start with number 1 to indicate 1st window *)
@@ -335,11 +337,11 @@ type user_window = url * nat
 
 (** A type for identifying a text input box.  The integer refers to the position
     of the text box among all of the text boxes on a given page. *)
-type user_textbox = user_window * int
+type user_textbox = user_window * nat
 
 (** A type for identifying a button.  The integer refers to the position of the
     button among all of the buttons on a given page. *)
-type user_button = user_window * int
+type user_button = user_window * nat
 
 (** The type of input events that can trigger action in a browser. *)
 type input_event =

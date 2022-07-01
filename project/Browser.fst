@@ -163,7 +163,6 @@ let prim2 (prim: string) (r1: value) (r2: value)
   : expr inner =
     let f = to_inner_expr in
     begin match e with
-    // ---TO DO--
     | X(_) -> X(R(Error("Unreachable case encountered")))  (* unreachable case *) // assert (False)    
     | Null -> Null
     | Bool(b) -> Bool(b)

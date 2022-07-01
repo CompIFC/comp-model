@@ -1,5 +1,5 @@
 [
-  "\u0019«^Õ¿\u0007πD›Àq\u0006‡I%\u001d",
+  "\u001eLÍ‰÷AﬂÇAq<8πàq¡",
   [
     [
       "Top_level.running",
@@ -12,7 +12,7 @@
         "assumption_Prims.list__uu___haseq", "kinding_Browser.task@tok"
       ],
       0,
-      "a8d4a74e0fddeb580a96fddf70e191e0"
+      "f03200da9d413af054c23e5e3c2bb1f6"
     ],
     [
       "Top_level.state",
@@ -25,7 +25,7 @@
         "equation_Top_level.waiting"
       ],
       0,
-      "e65b4870cf2ef6f0cdaa6fe985b70273"
+      "7c4f631946bcee42c8bfc362e57bd391"
     ],
     [
       "Top_level.__proj__Waiting__item___0",
@@ -37,7 +37,7 @@
         "refinement_interpretation_Tm_refine_4785e46bbc3d74521170d79bde30ad95"
       ],
       0,
-      "5690b2ca3be3103f67adb0b08cdc8111"
+      "4c5b6fe8381d1f01ec2f2bafafe34dae"
     ],
     [
       "Top_level.__proj__Running__item___0",
@@ -49,7 +49,7 @@
         "refinement_interpretation_Tm_refine_71b57c25b1c7497dce2b5aa863afa8ca"
       ],
       0,
-      "9c786ce01041ae013b6301bcab6380b9"
+      "c56da115d20e8bc09b7373ba32908681"
     ],
     [
       "Top_level.start",
@@ -72,7 +72,7 @@
         "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2"
       ],
       0,
-      "eb16882fcb9f60b152a3a247bbf816f6"
+      "ac6b924f1d1106f82a0fbdb68f8836b1"
     ],
     [
       "Top_level.handle_close_win_event",
@@ -102,7 +102,7 @@
         "typing_FStar.List.Tot.Base.assoc"
       ],
       0,
-      "de8708e9ab16f2faa14dc07ce259a260"
+      "38095c1987357841993751b5b78c1ad6"
     ],
     [
       "Top_level.handle_input_text_event",
@@ -128,7 +128,7 @@
         "typing_tok_Browser.Null_value@tok"
       ],
       0,
-      "1c4f428551ca079946678b67f42013b5"
+      "7c0ee62059e24197fff0584c1d8f7dec"
     ],
     [
       "Top_level.handle_click_button_event",
@@ -148,7 +148,7 @@
         "typing_Browser.button_handlers_in_pos"
       ],
       0,
-      "1477c9f091d876012acdc9ed3c044971"
+      "de76f6246e21676b9294744ac13c2e0d"
     ],
     [
       "Top_level.get_ready_exprs",
@@ -184,7 +184,160 @@
         "typing_FStar.Pervasives.Native.uu___is_Some"
       ],
       0,
-      "2cba131234e1a5b8715a3130b3d8edfe"
+      "e15eaff39d8559dd4a35d263580931e0"
+    ],
+    [
+      "Top_level.handle_network_response_event",
+      1,
+      2,
+      1,
+      [
+        "@MaxFuel_assumption", "@MaxIFuel_assumption",
+        "@fuel_correspondence_Browser.b_env_pred.fuel_instrumented",
+        "@fuel_correspondence_Browser.b_node_pred.fuel_instrumented",
+        "@fuel_correspondence_FStar.List.Tot.Base.assoc.fuel_instrumented",
+        "@fuel_correspondence_FStar.List.Tot.Base.length.fuel_instrumented",
+        "@query", "bool_inversion",
+        "constructor_distinct_FStar.Pervasives.Native.Some",
+        "constructor_distinct_FStar.Pervasives.V",
+        "constructor_distinct_Tm_unit", "data_elim_Browser.Mkbrowser",
+        "data_elim_FStar.Pervasives.Err",
+        "data_typing_intro_FStar.Pervasives.Err@tok",
+        "data_typing_intro_FStar.Pervasives.V@tok",
+        "disc_equation_FStar.Pervasives.Err",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "disc_equation_Prims.Cons", "equation_Browser.b_env",
+        "equation_Browser.b_nodes",
+        "equation_Browser.net_connection_domain_nth",
+        "equation_Browser.node_ref", "equation_Browser.page_ref",
+        "equation_Browser.page_valid", "equation_Browser.page_win",
+        "equation_Browser.win_ref", "equation_Browser.win_valid",
+        "equation_Prims.eqtype", "equation_Prims.nat",
+        "equation_Top_level.output_event",
+        "equation_with_fuel_Browser.b_node_pred.fuel_instrumented",
+        "equation_with_fuel_FStar.List.Tot.Base.length.fuel_instrumented",
+        "fuel_guarded_inversion_Browser.browser",
+        "fuel_guarded_inversion_BrowserIO.resp",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "kinding_Browser.dst@tok", "kinding_Browser.node@tok",
+        "kinding_Browser.page@tok", "kinding_Browser.win@tok",
+        "kinding_BrowserIO.output_event@tok",
+        "kinding_BrowserIO.req_uri@tok",
+        "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "kinding_Prims.list@tok", "kinding_Top_level.state@tok",
+        "lemma_FStar.Pervasives.invertOption", "primitive_Prims.op_AmpAmp",
+        "primitive_Prims.op_GreaterThanOrEqual",
+        "proj_equation_Browser.Mkbrowser_browser_environments",
+        "proj_equation_Browser.Mkbrowser_browser_nodes",
+        "proj_equation_Browser.Mkwin_win_page",
+        "projection_inverse_BoxBool_proj_0",
+        "projection_inverse_BoxInt_proj_0",
+        "projection_inverse_FStar.Pervasives.Native.Some_a",
+        "projection_inverse_FStar.Pervasives.Native.Some_v",
+        "projection_inverse_FStar.Pervasives.V_a",
+        "projection_inverse_FStar.Pervasives.V_v",
+        "refinement_interpretation_Tm_refine_0fe9be3218d1db3c2d0da0c2971b736b",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f",
+        "refinement_interpretation_Tm_refine_e556a1d7a621448e48e0c8de4d09beca",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "string_inversion", "string_typing",
+        "typing_Browser.__proj__Mkbrowser__item__browser_environments",
+        "typing_Browser.__proj__Mkbrowser__item__browser_nodes",
+        "typing_Browser.__proj__Mkbrowser__item__browser_pages",
+        "typing_Browser.__proj__Mkbrowser__item__browser_windows",
+        "typing_Browser.__proj__Mkwin__item__win_page",
+        "typing_Browser.b_env_pred", "typing_Browser.b_node_pred",
+        "typing_Browser.net_connection_domain_nth",
+        "typing_Browser.net_connection_domain_remove_nth",
+        "typing_Browser.page_remove", "typing_Browser.page_win",
+        "typing_Browser.upd_cookies", "typing_Browser.win_valid",
+        "typing_FStar.List.Tot.Base.assoc"
+      ],
+      0,
+      "11efd548100094d22fbf37b8711246b5"
+    ],
+    [
+      "Top_level.receive",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption", "@query",
+        "data_typing_intro_FStar.Pervasives.V@tok",
+        "disc_equation_BrowserIO.Network_response_event",
+        "disc_equation_BrowserIO.User_click_button_event",
+        "disc_equation_BrowserIO.User_close_win_event",
+        "disc_equation_BrowserIO.User_input_text_event",
+        "disc_equation_BrowserIO.User_link_to_named_win_event",
+        "disc_equation_BrowserIO.User_link_to_new_win_event",
+        "disc_equation_BrowserIO.User_load_in_new_win_event",
+        "disc_equation_BrowserIO.User_load_in_win_event",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "equation_Browser.win_from_user_window", "equation_Browser.win_ref",
+        "equation_Prims.nat", "equation_Top_level.input_event",
+        "equation_Top_level.output_event", "equation_Top_level.waiting",
+        "fuel_guarded_inversion_Browser.browser",
+        "fuel_guarded_inversion_BrowserIO.input_event",
+        "kinding_BrowserIO.output_event@tok",
+        "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "kinding_Prims.list@tok", "kinding_Top_level.state@tok",
+        "lemma_FStar.Pervasives.invertOption",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.win_from_user_window",
+        "typing_Browser.win_from_win_name"
+      ],
+      0,
+      "cdbf045b4b1288b942d422b7fff37327"
+    ],
+    [
+      "Top_level.continue",
+      1,
+      2,
+      1,
+      [
+        "@MaxIFuel_assumption",
+        "@fuel_correspondence_FStar.List.Tot.Base.assoc.fuel_instrumented",
+        "@query", "bool_inversion", "data_elim_Browser.Mktask",
+        "data_typing_intro_FStar.Pervasives.V@tok",
+        "disc_equation_FStar.Pervasives.Err",
+        "disc_equation_FStar.Pervasives.Native.None",
+        "disc_equation_FStar.Pervasives.Native.Some",
+        "disc_equation_Prims.Cons", "disc_equation_Prims.Nil",
+        "equation_Browser.page_ref", "equation_Browser.page_valid",
+        "equation_Browser.win_ref", "equation_Browser.win_valid",
+        "equation_Prims.eqtype", "equation_Prims.nat",
+        "equation_Top_level.output_event",
+        "fuel_guarded_inversion_Browser.task",
+        "fuel_guarded_inversion_Prims.list",
+        "fuel_guarded_inversion_Top_level.running",
+        "function_token_typing_Prims.int",
+        "haseqTm_refine_542f9d4f129664613f2483a6c88bc7c2", "int_inversion",
+        "kinding_Browser.page@tok", "kinding_Browser.win@tok",
+        "kinding_BrowserIO.output_event@tok",
+        "kinding_FStar.Pervasives.Native.tuple2@tok",
+        "kinding_Prims.list@tok", "kinding_Top_level.state@tok",
+        "lemma_FStar.Pervasives.invertOption", "primitive_Prims.op_Negation",
+        "proj_equation_Browser.Mktask_task_win",
+        "proj_equation_Top_level.Mkrunning_running_state",
+        "proj_equation_Top_level.Mkrunning_running_task_queue",
+        "projection_inverse_BoxBool_proj_0",
+        "refinement_interpretation_Tm_refine_414d0a9f578ab0048252f8c8f552b99f",
+        "refinement_interpretation_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "refinement_kinding_Tm_refine_542f9d4f129664613f2483a6c88bc7c2",
+        "typing_Browser.__proj__Mkbrowser__item__browser_pages",
+        "typing_Browser.__proj__Mkbrowser__item__browser_windows",
+        "typing_Browser.__proj__Mktask__item__task_win",
+        "typing_Browser.__proj__Mkwin__item__win_page",
+        "typing_Browser.win_valid", "typing_FStar.List.Tot.Base.assoc",
+        "typing_Top_level.__proj__Mkrunning__item__running_state",
+        "typing_Top_level.__proj__Mkrunning__item__running_task_queue"
+      ],
+      0,
+      "cbf3a7dabc114b55f30363cb836bc750"
     ]
   ]
 ]
